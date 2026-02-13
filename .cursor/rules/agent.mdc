@@ -1,3 +1,274 @@
 ---
 alwaysApply: true
 ---
+
+# simpleCommerce Project Agent Rules
+
+## 🚨 MANDATORY: Specifications First
+
+**BEFORE writing any code, you MUST:**
+
+1. **Read the relevant specifications** from the `specs/` directory
+2. **Understand the architecture** from [specs/_meta.md](mdc:specs/_meta.md)
+3. **Check functional requirements** in [specs/functional_requirements.md](mdc:specs/functional_requirements.md)
+4. **Verify API contracts** in [specs/api_contracts.md](mdc:specs/api_contracts.md)
+5. **Review database schema** in [specs/database_design.md](mdc:specs/database_design.md)
+6. **Check UI components** in [specs/ui_components_design.md](mdc:specs/ui_components_design.md)
+7. **Understand architecture** in [specs/architecture_design.md](mdc:specs/architecture_design.md)
+
+**NEVER implement features without consulting the specifications first. The specs are the single source of truth.**
+
+---
+
+## 📋 Project Overview
+
+**Project Name:** simpleCommerce Commerce & Order Operations Platform  
+**Type:** E-commerce platform with manual payment verification  
+**Architecture:** Microservice-ish Monolith (single codebase, modular components)
+
+### Technology Stack
+- **Frontend:** ReactJS (SPA), Mobile-first responsive design
+- **Backend:** FastAPI (Python) with Uvicorn
+- **Database:** PostgreSQL with SQLAlchemy + Alembic
+- **Storage:** MinIO (S3-compatible) for file storage
+- **Infrastructure:** Docker + Docker Compose
+- **Reverse Proxy:** Nginx (production)
+
+### Key Features
+- Customer storefront for browsing and ordering
+- Admin dashboard for product/order management
+- Sales dashboard for payment verification
+- Phone/Email/Telegram authentication (OTP-based)
+- Manual payment verification with screenshot uploads
+- Order state machine with configurable transitions
+
+---
+
+## 🎯 Agent Workflow
+
+### Step 1: Understand the Request
+- Read the user's request carefully
+- Identify which part of the system is affected
+- Determine which specifications are relevant
+
+### Step 2: Review Specifications (MANDATORY)
+- **Always start with** [specs/_meta.md](mdc:specs/_meta.md) for architectural principles
+- **For features:** Read [specs/functional_requirements.md](mdc:specs/functional_requirements.md)
+- **For APIs:** Read [specs/api_contracts.md](mdc:specs/api_contracts.md)
+- **For database:** Read [specs/database_design.md](mdc:specs/database_design.md)
+- **For UI:** Read [specs/ui_components_design.md](mdc:specs/ui_components_design.md)
+- **For architecture:** Read [specs/architecture_design.md](mdc:specs/architecture_design.md)
+
+### Step 3: Plan Your Approach
+Before writing code, provide:
+1. **Understanding:** Brief summary of what needs to be done
+2. **Plan:** Bullet points outlining your approach
+3. **Spec References:** Which spec sections you're following
+4. **Dependencies:** What other parts of the system this affects
+
+### Step 4: Implement
+- Follow the specifications exactly
+- Use existing patterns and conventions
+- Make minimal, focused changes
+- Maintain consistency with the codebase
+
+### Step 5: Verify
+- Check that implementation matches the specs
+- Verify naming conventions are followed
+- Ensure error handling is in place
+- Consider edge cases
+
+---
+
+## 📐 Architecture Principles (from specs/_meta.md)
+
+### Core Principles
+1. **Separation of Concerns:** Modular components with clear boundaries
+2. **API-First Design:** RESTful APIs with OpenAPI documentation
+3. **Security-First:** JWT auth, RBAC, input validation, SQL injection prevention
+4. **Mobile-First:** Responsive design optimized for mobile devices
+5. **State Management:** Order status state machine with enforced transitions
+
+### Code Organization
+
+**Frontend Structure:**
+```
+src/
+  components/     # Reusable components (atoms, molecules, organisms)
+  pages/          # Page components
+  services/       # API services
+  hooks/          # Custom React hooks
+  utils/          # Utility functions
+  types/          # TypeScript types
+  theme/          # Theme configuration
+  constants/      # Constants
+```
+
+**Backend Structure:**
+```
+app/
+  api/            # API routes
+  services/       # Business logic
+  models/         # Database models (SQLAlchemy)
+  schemas/        # Pydantic schemas
+  utils/          # Utility functions
+  core/           # Core configuration
+  migrations/     # Alembic migrations
+```
+
+---
+
+## 🔤 Naming Conventions
+
+### Frontend (JavaScript/TypeScript)
+- **Components:** PascalCase (`ProductCard`, `OrderList`)
+- **Files:** Match component name or kebab-case for utilities
+- **Variables/Functions:** camelCase (`getUserOrders`, `orderStatus`)
+- **Constants:** UPPER_SNAKE_CASE (`API_BASE_URL`, `MAX_FILE_SIZE`)
+- **CSS Classes:** kebab-case (`product-card`, `order-list-item`)
+
+### Backend (Python)
+- **Modules/Packages:** snake_case (`order_service.py`, `auth_service.py`)
+- **Classes:** PascalCase (`OrderService`, `UserModel`)
+- **Functions/Variables:** snake_case (`create_order`, `user_id`)
+- **Constants:** UPPER_SNAKE_CASE (`MAX_OTP_ATTEMPTS`, `DEFAULT_PAGE_SIZE`)
+
+### Database
+- **Tables:** snake_case, plural (`users`, `order_items`)
+- **Columns:** snake_case (`user_id`, `created_at`)
+- **Primary Keys:** `id`
+- **Foreign Keys:** `{referenced_table}_id` (`user_id`, `product_id`)
+
+---
+
+## 🎨 Theme System
+
+The application uses a **global theme configuration system**. All components must:
+- Use theme values instead of hardcoded colors/sizes
+- Access theme through theme provider/context
+- Support the centralized theme configuration
+- Follow the theme structure defined in [specs/_meta.md](mdc:specs/_meta.md) section 5
+
+---
+
+## 🔒 Security Requirements
+
+### Authentication
+- JWT-based with short-lived access tokens (15 min) and refresh tokens (7 days)
+- Support phone, email, and Telegram authentication
+- OTP-based authentication flow
+
+### Authorization
+- Role-Based Access Control (RBAC): customer, sales, admin
+- Server-side enforcement on every request
+- Resource ownership checks (customers can only access their own resources)
+
+### Data Protection
+- Input validation using Pydantic models (backend) and form validation (frontend)
+- ORM parameterized queries only (no raw SQL)
+- XSS prevention with input sanitization
+- File upload security with type and size validation
+
+---
+
+## 📝 Code Quality Standards
+
+### Type Safety
+- **Frontend:** TypeScript with proper types
+- **Backend:** Python type hints
+
+### Error Handling
+- Standardized error response format across all APIs
+- User-friendly error messages
+- Proper HTTP status codes
+- Business rule validation on server-side
+
+### Testing
+- Write unit tests for business logic
+- Integration tests for API endpoints
+- Consider edge cases and error scenarios
+
+---
+
+## 🚫 What NOT to Do
+
+1. **Don't skip specifications** - Always read relevant specs before coding
+2. **Don't invent APIs** - Follow [specs/api_contracts.md](mdc:specs/api_contracts.md) exactly
+3. **Don't change database schema** - Follow [specs/database_design.md](mdc:specs/database_design.md)
+4. **Don't delete/rename files** - Unless explicitly requested
+5. **Don't use raw SQL** - Use SQLAlchemy ORM only
+6. **Don't hardcode values** - Use theme system, constants, or environment variables
+7. **Don't bypass security** - Always enforce authentication and authorization
+8. **Don't ignore error handling** - Always handle errors gracefully
+
+---
+
+## ✅ Response Format
+
+Always structure your response as:
+
+1. **Understanding** (1-2 sentences)
+   - What the user wants to accomplish
+
+2. **Spec Review** (list relevant specs checked)
+   - Which specification documents you reviewed
+   - Key requirements from specs
+
+3. **Plan** (3-5 bullet points)
+   - What you'll implement
+   - How you'll approach it
+   - Dependencies and considerations
+
+4. **Implementation**
+   - Code changes following the plan
+
+5. **Verification**
+   - How to test/verify the changes
+   - Edge cases considered
+
+6. **Notes/Risks** (only if relevant)
+   - Any important considerations or potential issues
+
+---
+
+## 🔄 When Stuck or Ambiguous
+
+1. **Check specs first** - The answer is likely in the specifications
+2. **Look for similar patterns** - Search the codebase for similar implementations
+3. **Ask targeted questions** - If specs are unclear, ask 1-2 specific questions
+4. **Make reasonable assumptions** - Document your assumptions clearly
+
+---
+
+## 📚 Specification Reference Quick Guide
+
+| Task Type | Primary Spec | Secondary Specs |
+|-----------|-------------|------------------|
+| New Feature | functional_requirements.md | api_contracts.md, ui_components_design.md |
+| API Endpoint | api_contracts.md | functional_requirements.md, database_design.md |
+| Database Change | database_design.md | architecture_design.md, functional_requirements.md |
+| UI Component | ui_components_design.md | functional_requirements.md, _meta.md (theme) |
+| Architecture Decision | architecture_design.md, _meta.md | All other specs |
+| Bug Fix | functional_requirements.md | api_contracts.md, database_design.md |
+
+**Remember: Always start with `_meta.md` for architectural context, then dive into specific specs.**
+
+---
+
+## 🎯 Success Criteria
+
+Your implementation is successful when:
+- ✅ All specifications are followed
+- ✅ Code matches existing patterns and conventions
+- ✅ Security requirements are met
+- ✅ Error handling is in place
+- ✅ Naming conventions are followed
+- ✅ Theme system is used (for UI components)
+- ✅ Tests pass (if applicable)
+- ✅ No linter errors
+
+---
+
+**Last Updated:** Based on all specification documents v1.0  
+**Project Status:** Active Development  
+**Specification Location:** `specs/` directory
