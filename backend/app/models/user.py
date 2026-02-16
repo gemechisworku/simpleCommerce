@@ -1,0 +1,39 @@
+"""
+User model
+"""
+import uuid
+from sqlalchemy import Column, String, Boolean, DateTime, Enum as SQLEnum
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.sql import func
+from app.models.base import Base
+import enum
+
+
+class UserRole(str, enum.Enum):
+    """User role enum"""
+    CUSTOMER = "customer"
+    SALES = "sales"
+    ADMIN = "admin"
+
+
+class User(Base):
+    """User model"""
+    __tablename__ = "users"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    phone = Column(String(20), unique=True, nullable=True, index=True)
+    phone_verified = Column(Boolean, nullable=False, default=False)
+    email = Column(String(255), unique=True, nullable=True, index=True)
+    email_verified = Column(Boolean, nullable=False, default=False)
+    telegram_user_id = Column(String(100), unique=True, nullable=True, index=True)
+    telegram_username = Column(String(100), nullable=True)
+    first_name = Column(String(100), nullable=True)
+    last_name = Column(String(100), nullable=True)
+    role = Column(SQLEnum(UserRole), nullable=False, default=UserRole.CUSTOMER, index=True)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    def __repr__(self):
+        return f"<User(id={self.id}, phone={self.phone}, role={self.role})>"
+
