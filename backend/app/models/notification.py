@@ -27,7 +27,7 @@ class Notification(Base):
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    type = Column(SQLEnum(NotificationType), nullable=False)
+    type = Column(SQLEnum(NotificationType, values_callable=lambda x: [e.value for e in x]), nullable=False)
     title = Column(String(200), nullable=False)
     message = Column(Text, nullable=False)
     related_order_id = Column(BigInteger, ForeignKey("orders.id", ondelete="CASCADE"), nullable=True, index=True)

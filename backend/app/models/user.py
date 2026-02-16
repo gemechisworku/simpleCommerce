@@ -29,7 +29,7 @@ class User(Base):
     telegram_username = Column(String(100), nullable=True)
     first_name = Column(String(100), nullable=True)
     last_name = Column(String(100), nullable=True)
-    role = Column(SQLEnum(UserRole), nullable=False, default=UserRole.CUSTOMER, index=True)
+    role = Column(SQLEnum(UserRole, values_callable=lambda x: [e.value for e in x]), nullable=False, default=UserRole.CUSTOMER, index=True)
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)

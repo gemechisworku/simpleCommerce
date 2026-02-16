@@ -1,0 +1,228 @@
+"""
+Authentication endpoints
+"""
+from fastapi import APIRouter, Depends, Request, status
+from sqlalchemy.orm import Session
+from app.core.database import get_db
+from app.core.exceptions import BusinessRuleError
+from app.core.config import settings
+from app.schemas.auth import (
+    OTPRequest,
+    OTPVerify,
+    EmailOTPRequest,
+    EmailOTPVerify,
+    RefreshTokenRequest,
+    LogoutRequest,
+    LoginResponse,
+    OTPResponse,
+    TokenResponse
+)
+from app.schemas.common import ResponseModel
+from app.services.auth.otp_service import (
+    create_otp,
+    verify_otp,
+    get_or_create_user_by_phone,
+    get_or_create_user_by_email
+)
+from app.services.auth.token_service import (
+    create_tokens_for_user,
+    refresh_access_token,
+    revoke_refresh_token
+)
+from app.models.auth import OTPType, OTPPurpose
+from app.api.dependencies import get_current_user
+from app.models.user import User
+from app.schemas.user import UserResponse
+from typing import Optional
+
+router = APIRouter()
+
+
+def get_client_ip(request: Request) -> Optional[str]:
+    """Extract client IP address from request"""
+    # Check for forwarded IP (from proxy/load balancer)
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    
+    # Check for real IP
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip:
+        return real_ip
+    
+    # Fallback to client host
+    if request.client:
+        return request.client.host
+    
+    return None
+
+
+@router.post("/otp/request", response_model=ResponseModel[OTPResponse], status_code=status.HTTP_200_OK)
+async def request_otp(
+    request_data: OTPRequest,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """
+    Request OTP code via phone number
+    """
+    ip_address = get_client_ip(request)
+    
+    # Create OTP
+    otp = create_otp(
+        db=db,
+        identifier=request_data.phone,
+        otp_type=OTPType.PHONE,
+        purpose=OTPPurpose.LOGIN,
+        ip_address=ip_address
+    )
+    
+    return ResponseModel(data=OTPResponse(
+        message="OTP sent successfully",
+        expires_in=settings.OTP_EXPIRY_MINUTES * 60
+    ))
+
+
+@router.post("/otp/verify", response_model=ResponseModel[LoginResponse], status_code=status.HTTP_200_OK)
+async def verify_otp_and_login(
+    request_data: OTPVerify,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """
+    Verify OTP code and receive JWT tokens
+    """
+    # Verify OTP
+    otp = verify_otp(
+        db=db,
+        identifier=request_data.phone,
+        code=request_data.code,
+        otp_type=OTPType.PHONE,
+        purpose=OTPPurpose.LOGIN
+    )
+    
+    # Get or create user
+    user = get_or_create_user_by_phone(db, request_data.phone)
+    
+    # Create tokens
+    ip_address = get_client_ip(request)
+    user_agent = request.headers.get("User-Agent")
+    
+    access_token, refresh_token, _ = create_tokens_for_user(
+        db=db,
+        user=user,
+        ip_address=ip_address,
+        user_agent=user_agent
+    )
+    
+    return ResponseModel(data=LoginResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="Bearer",
+        expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=UserResponse.model_validate(user)
+    ))
+
+
+@router.post("/email/request", response_model=ResponseModel[OTPResponse], status_code=status.HTTP_200_OK)
+async def request_email_otp(
+    request_data: EmailOTPRequest,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """
+    Request OTP code via email
+    """
+    ip_address = get_client_ip(request)
+    
+    # Create OTP
+    otp = create_otp(
+        db=db,
+        identifier=request_data.email,
+        otp_type=OTPType.EMAIL,
+        purpose=OTPPurpose.LOGIN,
+        ip_address=ip_address
+    )
+    
+    return ResponseModel(data=OTPResponse(
+        message="OTP sent to email",
+        expires_in=settings.OTP_EXPIRY_MINUTES * 60
+    ))
+
+
+@router.post("/email/verify", response_model=ResponseModel[LoginResponse], status_code=status.HTTP_200_OK)
+async def verify_email_otp_and_login(
+    request_data: EmailOTPVerify,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """
+    Verify email OTP code and receive JWT tokens
+    """
+    # Verify OTP
+    otp = verify_otp(
+        db=db,
+        identifier=request_data.email,
+        code=request_data.code,
+        otp_type=OTPType.EMAIL,
+        purpose=OTPPurpose.LOGIN
+    )
+    
+    # Get or create user
+    user = get_or_create_user_by_email(db, request_data.email)
+    
+    # Create tokens
+    ip_address = get_client_ip(request)
+    user_agent = request.headers.get("User-Agent")
+    
+    access_token, refresh_token, _ = create_tokens_for_user(
+        db=db,
+        user=user,
+        ip_address=ip_address,
+        user_agent=user_agent
+    )
+    
+    return ResponseModel(data=LoginResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="Bearer",
+        expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=UserResponse.model_validate(user)
+    ))
+
+
+@router.post("/refresh", response_model=ResponseModel[TokenResponse], status_code=status.HTTP_200_OK)
+async def refresh_token(
+    request_data: RefreshTokenRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Refresh access token using refresh token
+    """
+    access_token, refresh_token, _ = refresh_access_token(
+        db=db,
+        refresh_token=request_data.refresh_token
+    )
+    
+    return ResponseModel(data=TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="Bearer",
+        expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    ))
+
+
+@router.post("/logout", response_model=ResponseModel[dict], status_code=status.HTTP_200_OK)
+async def logout(
+    request_data: LogoutRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Logout and revoke refresh token
+    """
+    revoke_refresh_token(db, request_data.refresh_token)
+    
+    return ResponseModel(data={"message": "Logged out successfully"})
+
+
+

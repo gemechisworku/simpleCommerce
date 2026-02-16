@@ -29,8 +29,8 @@ class OTPCode(Base):
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     identifier = Column(String(255), nullable=False, index=True)  # Phone or email
     code = Column(String(10), nullable=False, index=True)
-    type = Column(SQLEnum(OTPType), nullable=False)
-    purpose = Column(SQLEnum(OTPPurpose), nullable=False)
+    type = Column(SQLEnum(OTPType, values_callable=lambda x: [e.value for e in x]), nullable=False)
+    purpose = Column(SQLEnum(OTPPurpose, values_callable=lambda x: [e.value for e in x]), nullable=False)
     expires_at = Column(DateTime(timezone=True), nullable=False, index=True)
     used_at = Column(DateTime(timezone=True), nullable=True)
     ip_address = Column(String(45), nullable=True)

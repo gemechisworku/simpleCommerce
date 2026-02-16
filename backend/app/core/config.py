@@ -31,9 +31,14 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001"]
     
     # OTP
-    OTP_EXPIRY_MINUTES: int = 10
+    OTP_EXPIRY_MINUTES: int = 5
     OTP_MAX_ATTEMPTS: int = 5
     OTP_RESEND_COOLDOWN_SECONDS: int = 60
+    
+    # Rate Limiting
+    OTP_RATE_LIMIT_WINDOW_MINUTES: int = 15  # Time window for rate limiting
+    OTP_RATE_LIMIT_MAX_PER_IDENTIFIER: int = 3  # Max OTP requests per phone/email
+    OTP_RATE_LIMIT_MAX_PER_IP: int = 5  # Max OTP requests per IP address
     
     # File Upload
     MAX_FILE_SIZE_MB: int = 5

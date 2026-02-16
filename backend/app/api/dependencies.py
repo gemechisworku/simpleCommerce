@@ -10,26 +10,29 @@ from app.core.exceptions import AuthenticationError, AuthorizationError
 from app.models.user import User, UserRole
 from typing import Optional
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
     """
     Get current authenticated user from JWT token
     
     Args:
-        credentials: HTTP Bearer token credentials
+        credentials: HTTP Bearer token credentials (optional)
         db: Database session
         
     Returns:
         User object
         
     Raises:
-        AuthenticationError: If token is invalid or user not found
+        AuthenticationError: If token is missing, invalid, or user not found
     """
+    if not credentials:
+        raise AuthenticationError("Authentication required. Please provide a valid access token.")
+    
     token = credentials.credentials
     payload = verify_token(token, token_type="access")
     

@@ -29,7 +29,7 @@ class PaymentMethod(Base):
     __tablename__ = "payment_methods"
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
-    type = Column(SQLEnum(PaymentMethodType), nullable=False, index=True)
+    type = Column(SQLEnum(PaymentMethodType, values_callable=lambda x: [e.value for e in x]), nullable=False, index=True)
     name = Column(String(100), nullable=False)
     account_identifier = Column(String(100), nullable=False)
     account_holder = Column(String(100), nullable=False)
@@ -58,7 +58,7 @@ class Payment(Base):
     reference_text = Column(String(200), nullable=True)
     paid_at = Column(DateTime(timezone=True), nullable=True)
     screenshot_url = Column(String(500), nullable=False)
-    status = Column(SQLEnum(PaymentStatus), nullable=False, default=PaymentStatus.SUBMITTED, index=True)
+    status = Column(SQLEnum(PaymentStatus, values_callable=lambda x: [e.value for e in x]), nullable=False, default=PaymentStatus.SUBMITTED, index=True)
     reviewed_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
     reviewed_at = Column(DateTime(timezone=True), nullable=True)
     review_note = Column(Text, nullable=True)
