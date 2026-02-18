@@ -1,0 +1,15 @@
+.admin-product-form .back-link { background: none; border: none; color: var(--color-primary); cursor: pointer; margin-bottom: 16px; }
+.admin-product-form h1 { margin-bottom: 24px; }
+.admin-product-form .error { color: var(--color-status-error); margin-bottom: 16px; }
+.admin-product-form .form-section { margin-bottom: 32px; padding: 20px; background: var(--color-bg-surface); border-radius: 8px; }
+.admin-product-form .form-section h2 { margin: 0 0 16px; font-size: 1.125rem; }
+.admin-product-form .form-group { margin-bottom: 16px; }
+.admin-product-form .form-group label { display: block; margin-bottom: 6px; font-weight: 500; }
+.admin-product-form .form-group input, .admin-product-form .form-group select, .admin-product-form .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: 8px; }
+.admin-product-form .form-row { display: flex; gap: 24px; align-items: center; margin-bottom: 16px; }
+.admin-product-form .variant-row { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+.admin-product-form .variant-row input { padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 6px; min-width: 80px; }
+.admin-product-form .btn-remove { padding: 8px 12px; border: 1px solid var(--color-status-error); color: var(--color-status-error); background: white; border-radius: 6px; cursor: pointer; }
+.admin-product-form .form-actions { display: flex; gap: 12px; margin-top: 24px; }
+.admin-product-form .btn-primary { padding: 12px 24px; background: var(--color-primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.admin-product-form .btn-secondary { padding: 12px 24px; border: 1px solid var(--color-border); background: white; border-radius: 8px; cursor: pointer; }

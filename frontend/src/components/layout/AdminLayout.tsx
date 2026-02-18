@@ -24,6 +24,10 @@ function AdminLayoutInner() {
             <Link to="/admin">Dashboard</Link>
             <Link to="/admin/orders">Orders</Link>
             <Link to="/admin/payments">Payments</Link>
+            <Link to="/admin/products">Products</Link>
+            <Link to="/admin/categories">Categories</Link>
+            <Link to="/admin/delivery-zones">Delivery Zones</Link>
+            <Link to="/admin/payment-methods">Payment Methods</Link>
             {user?.role === 'admin' && <Link to="/admin/users">Users</Link>}
             <Link to="/">Store</Link>
           </nav>
@@ -37,6 +41,10 @@ function AdminLayoutInner() {
             <Link to="/admin" onClick={() => setMenuOpen(false)}>Dashboard</Link>
             <Link to="/admin/orders" onClick={() => setMenuOpen(false)}>Orders</Link>
             <Link to="/admin/payments" onClick={() => setMenuOpen(false)}>Payments</Link>
+            <Link to="/admin/products" onClick={() => setMenuOpen(false)}>Products</Link>
+            <Link to="/admin/categories" onClick={() => setMenuOpen(false)}>Categories</Link>
+            <Link to="/admin/delivery-zones" onClick={() => setMenuOpen(false)}>Delivery Zones</Link>
+            <Link to="/admin/payment-methods" onClick={() => setMenuOpen(false)}>Payment Methods</Link>
             {user?.role === 'admin' && <Link to="/admin/users" onClick={() => setMenuOpen(false)}>Users</Link>}
             <Link to="/" onClick={() => setMenuOpen(false)}>Store</Link>
           </nav>

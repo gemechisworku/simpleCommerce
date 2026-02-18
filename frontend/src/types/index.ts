@@ -41,6 +41,7 @@ export interface ProductVariant {
   price: string;
   stock_qty: number;
   is_active: boolean;
+  sku?: string | null;
 }
 
 export interface ProductImage {
@@ -56,6 +57,7 @@ export interface Product {
   slug: string;
   description: string | null;
   category_id: number | null;
+  is_active?: boolean;
   is_featured: boolean;
   price_min?: string;
   price_max?: string;
@@ -79,6 +81,7 @@ export interface CartItem {
 export interface DeliveryZone {
   id: number;
   name: string;
+  description?: string | null;
   fee: string;
   eta_min_days: number;
   eta_max_days: number;

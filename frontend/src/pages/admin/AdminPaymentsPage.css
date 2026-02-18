@@ -1,4 +1,20 @@
 .admin-payments-page h1 { margin-bottom: 24px; }
 .payments-list { display: flex; flex-direction: column; }
-.payment-row { display: grid; grid-template-columns: auto 1fr auto auto; gap: 24px; padding: 16px; border-bottom: 1px solid var(--color-border); }
+.admin-payments-page .payment-card { padding: 16px; border: 1px solid var(--color-border); border-radius: 8px; margin-bottom: 16px; background: var(--color-bg-surface); }
+.admin-payments-page .payment-info { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 12px; }
+.admin-payments-page .payment-screenshot { margin: 12px 0; }
+.admin-payments-page .payment-screenshot img { max-width: 200px; max-height: 200px; border-radius: 8px; border: 1px solid var(--color-border); }
+.admin-payments-page .payment-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.admin-payments-page .btn-approve { padding: 8px 16px; background: var(--color-status-success); color: white; border: none; border-radius: 6px; cursor: pointer; }
+.admin-payments-page .btn-reject { padding: 8px 16px; background: var(--color-status-error); color: white; border: none; border-radius: 6px; cursor: pointer; }
+.admin-payments-page .btn-resubmit { padding: 8px 16px; background: var(--color-status-warning); color: white; border: none; border-radius: 6px; cursor: pointer; }
+.admin-payments-page .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.admin-payments-page .modal-content { background: white; padding: 24px; border-radius: 12px; max-width: 400px; width: 90%; }
+.admin-payments-page .modal-content .form-group { margin: 16px 0; }
+.admin-payments-page .modal-content .form-group label { display: block; margin-bottom: 6px; }
+.admin-payments-page .modal-content .form-group textarea { width: 100%; padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; }
+.admin-payments-page .form-actions { display: flex; gap: 12px; margin-top: 16px; }
+.admin-payments-page .btn-primary { padding: 12px 24px; background: var(--color-primary); color: white; border: none; border-radius: 8px; cursor: pointer; }
+.admin-payments-page .btn-secondary { padding: 12px 24px; border: 1px solid var(--color-border); background: white; border-radius: 8px; cursor: pointer; }
+.admin-payments-page .pagination { display: flex; gap: 16px; margin-top: 24px; align-items: center; }
 .pagination { display: flex; gap: 16px; margin-top: 24px; align-items: center; }
