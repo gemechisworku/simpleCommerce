@@ -364,20 +364,20 @@ This document outlines the implementation plan for the simpleCommerce platform, 
 **Goal:** Enable in-app notifications for key events.
 
 ### 7.1 Notification System
-- [ ] **Create Notification Service**
+- [x] **Create Notification Service**
   - Create notification records in database
   - Support notification types (enum)
 
-- [ ] **List Notifications Endpoint**
+- [x] **List Notifications Endpoint**
   - Return notifications for authenticated user
   - Pagination (20 per page)
   - Order by `created_at DESC`
 
-- [ ] **Mark Notification as Read Endpoint**
+- [x] **Mark Notification as Read Endpoint**
   - Update `is_read = true`
   - Set `read_at` timestamp
 
-- [ ] **Get Unread Count Endpoint**
+- [x] **Get Unread Count Endpoint**
   - Return count of unread notifications
 
 **Priority:** MEDIUM - Enhances user experience
@@ -402,7 +402,7 @@ This document outlines the implementation plan for the simpleCommerce platform, 
 **Goal:** Provide admin dashboard with key metrics.
 
 ### 8.1 Dashboard Overview
-- [ ] **Dashboard Endpoint**
+- [x] **Dashboard Endpoint**
   - Orders today (count)
   - Pending payments count
   - Orders by status (counts)
@@ -412,20 +412,20 @@ This document outlines the implementation plan for the simpleCommerce platform, 
 **Priority:** MEDIUM - Useful for admin operations
 
 ### 8.2 User Management (Admin)
-- [ ] **List Users Endpoint**
+- [x] **List Users Endpoint**
   - Return all users
   - Filter by role, search by name/phone/email
   - Pagination
 
-- [ ] **Get User Detail Endpoint**
+- [x] **Get User Detail Endpoint**
   - Return user information
   - Include orders count and recent orders
 
-- [ ] **Create Sales/Admin User Endpoint**
+- [x] **Create Sales/Admin User Endpoint**
   - Create user with specified role
   - Send OTP for initial verification
 
-- [ ] **Update User Role Endpoint**
+- [x] **Update User Role Endpoint**
   - Update user role
   - Log role change (audit trail)
   - Validate (cannot change own role, cannot remove last admin)

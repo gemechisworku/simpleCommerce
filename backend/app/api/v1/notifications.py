@@ -10,7 +10,7 @@ from app.api.dependencies import get_current_user
 from app.models.user import User
 from app.schemas.notification import NotificationResponse, NotificationMarkReadRequest
 from app.schemas.common import ResponseModel, PaginatedResponse, PaginationMeta
-from app.services.notification import list_user_notifications, mark_notifications_as_read
+from app.services.notification import list_user_notifications, mark_notifications_as_read, get_unread_count
 from app.core.config import settings
 
 router = APIRouter()
@@ -71,4 +71,18 @@ async def mark_notifications_as_read_endpoint(
     )
     
     return ResponseModel(data={"message": f"{count} notifications marked as read"})
+
+
+@router.get("/unread-count", response_model=ResponseModel[dict], status_code=status.HTTP_200_OK)
+async def get_unread_count_endpoint(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get count of unread notifications
+
+    Requires authentication.
+    """
+    count = get_unread_count(db=db, user_id=current_user.id)
+    return ResponseModel(data={"count": count})
 

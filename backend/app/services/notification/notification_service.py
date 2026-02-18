@@ -2,6 +2,7 @@
 Notification service
 """
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 from typing import Optional, List, Tuple
 from uuid import UUID
 from datetime import datetime
@@ -40,7 +41,6 @@ def create_notification(
         type=type,
         title=title,
         message=message,
-        link=link,
         is_read=False
     )
     
@@ -111,4 +111,22 @@ def mark_notifications_as_read(
     
     logger.info(f"Marked {count} notifications as read for user {user_id}")
     return count
+
+
+def get_unread_count(db: Session, user_id: UUID) -> int:
+    """
+    Get count of unread notifications for a user
+
+    Args:
+        db: Database session
+        user_id: User ID
+
+    Returns:
+        Count of unread notifications
+    """
+    return (
+        db.query(Notification)
+        .filter(Notification.user_id == user_id, Notification.is_read == False)
+        .count()
+    )
 
