@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 from app.models.category import Category
-from app.models.product import Product, ProductVariant
+from app.models.product import Product, ProductVariant, ProductImage
 from app.utils.helpers import generate_slug
 from decimal import Decimal
 import logging
@@ -215,6 +215,47 @@ def seed_products(db: Session):
     logger.info("Products seeded successfully")
 
 
+# Product image URLs - use Lorem Picsum (reliable hotlinking, no 403)
+# Format: https://picsum.photos/seed/{slug}/800/800 for consistent images per product
+def get_product_image_url(slug: str) -> str:
+    """Get placeholder image URL for product (Picsum allows hotlinking)"""
+    return f"https://picsum.photos/seed/{slug}/800/800"
+
+
+def seed_product_images(db: Session):
+    """Seed product images for existing products"""
+    logger.info("Seeding product images...")
+
+    products = db.query(Product).filter(Product.deleted_at.is_(None)).all()
+    for product in products:
+        existing_images = db.query(ProductImage).filter(ProductImage.product_id == product.id).all()
+
+        # Replace Unsplash URLs (can cause 403) with Picsum
+        if existing_images and "unsplash" in (existing_images[0].url or ""):
+            for img in existing_images:
+                img.url = get_product_image_url(product.slug)
+            db.commit()
+            logger.info(f"Updated image URL for product: {product.name}")
+            continue
+
+        if existing_images:
+            logger.info(f"Product '{product.name}' already has images, skipping...")
+            continue
+
+        url = get_product_image_url(product.slug)
+        image = ProductImage(
+            product_id=product.id,
+            url=url,
+            alt_text=product.name,
+            sort_order=0,
+        )
+        db.add(image)
+        db.commit()
+        logger.info(f"Added image for product: {product.name}")
+
+    logger.info("Product images seeded successfully")
+
+
 def main():
     """Main seeding function"""
     db: Session = SessionLocal()
@@ -222,6 +263,7 @@ def main():
         logger.info("Starting mock data seeding...")
         seed_categories(db)
         seed_products(db)
+        seed_product_images(db)
         logger.info("Mock data seeding completed successfully!")
     except Exception as e:
         logger.error(f"Error seeding mock data: {str(e)}")

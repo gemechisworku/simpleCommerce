@@ -45,4 +45,5 @@ docker exec -it simplecommerce_backend python scripts/seed_mock_data.py
 - Featured products are marked appropriately
 - Each product has multiple variants with different prices and stock quantities
 - SKUs are generated for each variant
+- Product images use Unsplash URLs (free, high-quality placeholders)
 

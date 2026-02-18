@@ -1,0 +1,13 @@
+.my-orders-page h1 { margin-bottom: 24px; }
+.orders-list { display: flex; flex-direction: column; gap: 16px; }
+.order-card { display: block; padding: 20px; background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: 12px; text-decoration: none; color: inherit; }
+.order-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.order-number { font-weight: 600; }
+.status { font-size: 0.8rem; padding: 4px 8px; border-radius: 6px; }
+.status-pending-payment { background: #fef3c7; color: #92400e; }
+.status-paid, .status-delivered { background: #d1fae5; color: #065f46; }
+.status-cancelled { background: #fee2e2; color: #991b1b; }
+.order-meta { font-size: 0.9rem; color: var(--color-text-secondary); }
+.pagination { display: flex; gap: 16px; align-items: center; margin-top: 24px; }
+.pagination button { padding: 8px 16px; border: 1px solid var(--color-border); border-radius: 8px; cursor: pointer; }

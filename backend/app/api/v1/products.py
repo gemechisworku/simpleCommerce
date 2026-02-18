@@ -107,6 +107,13 @@ async def get_product_by_slug_public(
     # This is handled by the relationship, but we can ensure it
     active_variants = [v for v in product.variants if v.is_active]
     product.variants = active_variants
-    
-    return ResponseModel(data=ProductResponse.model_validate(product))
+
+    # Build response with image_url for convenience
+    response_data = ProductResponse.model_validate(product)
+    if product.images:
+        sorted_images = sorted(product.images, key=lambda x: x.sort_order)
+        response_data = response_data.model_copy(
+            update={"image_url": sorted_images[0].url if sorted_images else None}
+        )
+    return ResponseModel(data=response_data)
 

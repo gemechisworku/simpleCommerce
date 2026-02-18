@@ -96,6 +96,7 @@ class ProductResponse(BaseModel):
     updated_at: datetime
     variants: List[ProductVariantResponse] = []
     images: List[ProductImageResponse] = []
+    image_url: Optional[str] = None
 
     model_config = {"from_attributes": True}
 

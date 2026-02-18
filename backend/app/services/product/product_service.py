@@ -1,7 +1,7 @@
 """
 Product service for managing products
 """
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_, or_, func
 from typing import Optional, List, Tuple
 from decimal import Decimal
@@ -112,11 +112,14 @@ def get_product_by_slug(db: Session, slug: str, include_deleted: bool = False) -
     Returns:
         Product object or None
     """
-    query = db.query(Product).filter(Product.slug == slug)
-    
+    query = db.query(Product).options(
+        joinedload(Product.images),
+        joinedload(Product.variants),
+    ).filter(Product.slug == slug)
+
     if not include_deleted:
         query = query.filter(Product.deleted_at.is_(None))
-    
+
     return query.first()
 
 
@@ -202,8 +205,10 @@ def list_public_products(
     Returns:
         Tuple of (products list, total count)
     """
-    # Get products with at least one active variant
-    query = db.query(Product).join(ProductVariant).filter(
+    # Get products with at least one active variant (eager load images)
+    query = db.query(Product).options(
+        joinedload(Product.images)
+    ).join(ProductVariant).filter(
         and_(
             Product.deleted_at.is_(None),
             Product.is_active == True,

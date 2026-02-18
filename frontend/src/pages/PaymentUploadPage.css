@@ -1,0 +1,9 @@
+.payment-upload-page h1 { margin-bottom: 24px; }
+.order-summary-box { padding: 16px; background: var(--color-bg-surface); border-radius: 8px; margin-bottom: 24px; }
+.payment-upload-page .form-group { margin-bottom: 20px; }
+.payment-upload-page .form-group label { display: block; font-weight: 500; margin-bottom: 8px; }
+.payment-upload-page .form-group input, .payment-upload-page .form-group select {
+  width: 100%; padding: 12px; border: 1px solid var(--color-border); border-radius: 8px; font-size: 1rem;
+}
+.payment-upload-page .error { color: var(--color-status-error); margin-bottom: 16px; }
+.payment-upload-page button { padding: 14px 28px; background: var(--color-primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }

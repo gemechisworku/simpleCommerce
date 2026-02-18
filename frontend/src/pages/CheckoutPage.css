@@ -1,0 +1,9 @@
+.checkout-page h1 { margin-bottom: 24px; }
+.checkout-page form { max-width: 500px; }
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; font-weight: 500; margin-bottom: 8px; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid var(--color-border); border-radius: 8px; font-size: 1rem; }
+.order-summary { margin: 24px 0; font-size: 1.1rem; }
+.checkout-page .error { color: var(--color-status-error); margin-bottom: 16px; }
+.checkout-page button { padding: 14px 28px; background: var(--color-primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.checkout-page button:disabled { opacity: 0.7; cursor: not-allowed; }
