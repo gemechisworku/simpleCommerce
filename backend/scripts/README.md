@@ -18,7 +18,14 @@ docker exec -it simplecommerce_backend python scripts/seed_mock_data.py
 
 ### What it seeds:
 
-1. **Categories** (5 categories):
+1. **Superadmin** (first admin user):
+   - Phone: `+251911111111` (configurable via `SUPERADMIN_PHONE`)
+   - Role: admin (full access)
+   - Login: Go to `/login`, enter phone, request OTP. In dev, OTP is logged in backend.
+   - After login, go to `/admin` for the dashboard.
+   - Env overrides: `SUPERADMIN_PHONE`, `SUPERADMIN_EMAIL`, `SUPERADMIN_FIRST_NAME`, `SUPERADMIN_LAST_NAME`
+
+2. **Categories** (5 categories):
    - Coffee
    - Tea
    - Spices
@@ -45,5 +52,5 @@ docker exec -it simplecommerce_backend python scripts/seed_mock_data.py
 - Featured products are marked appropriately
 - Each product has multiple variants with different prices and stock quantities
 - SKUs are generated for each variant
-- Product images use Unsplash URLs (free, high-quality placeholders)
+- Product images use Lorem Picsum URLs (free, reliable placeholders)
 

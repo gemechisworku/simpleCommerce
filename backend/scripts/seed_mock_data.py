@@ -11,12 +11,59 @@ from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 from app.models.category import Category
 from app.models.product import Product, ProductVariant, ProductImage
+from app.models.user import User, UserRole
 from app.utils.helpers import generate_slug
 from decimal import Decimal
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Superadmin seed - configurable via env (default for dev only)
+SUPERADMIN_PHONE = os.environ.get("SUPERADMIN_PHONE", "+251911111111")
+SUPERADMIN_EMAIL = os.environ.get("SUPERADMIN_EMAIL", "admin@simplecommerce.local")
+SUPERADMIN_FIRST_NAME = os.environ.get("SUPERADMIN_FIRST_NAME", "Super")
+SUPERADMIN_LAST_NAME = os.environ.get("SUPERADMIN_LAST_NAME", "Admin")
+
+
+def seed_superadmin(db: Session):
+    """Seed first admin user for initial access. Login via phone OTP at /login."""
+    logger.info("Seeding superadmin user...")
+
+    existing = db.query(User).filter(User.phone == SUPERADMIN_PHONE).first()
+    if existing:
+        if existing.role == UserRole.ADMIN:
+            logger.info(f"Superadmin already exists: {SUPERADMIN_PHONE}, skipping...")
+            return
+        # Upgrade existing user to admin if they're not
+        existing.role = UserRole.ADMIN
+        existing.first_name = SUPERADMIN_FIRST_NAME
+        existing.last_name = SUPERADMIN_LAST_NAME
+        existing.email = SUPERADMIN_EMAIL or existing.email
+        db.commit()
+        logger.info(f"Upgraded user to admin: {SUPERADMIN_PHONE}")
+        return
+
+    # Check if email is taken (email must be unique)
+    admin_email = SUPERADMIN_EMAIL
+    if admin_email:
+        email_taken = db.query(User).filter(User.email == admin_email).first()
+        if email_taken:
+            logger.warning(f"Email {admin_email} already in use, creating admin without email")
+            admin_email = None
+
+    admin = User(
+        phone=SUPERADMIN_PHONE,
+        phone_verified=True,
+        email=admin_email,
+        first_name=SUPERADMIN_FIRST_NAME,
+        last_name=SUPERADMIN_LAST_NAME,
+        role=UserRole.ADMIN,
+        is_active=True,
+    )
+    db.add(admin)
+    db.commit()
+    logger.info(f"Created superadmin: {SUPERADMIN_PHONE} | Login at /login, then go to /admin (OTP in backend logs for dev)")
 
 
 def seed_categories(db: Session):
@@ -261,6 +308,7 @@ def main():
     db: Session = SessionLocal()
     try:
         logger.info("Starting mock data seeding...")
+        seed_superadmin(db)
         seed_categories(db)
         seed_products(db)
         seed_product_images(db)
