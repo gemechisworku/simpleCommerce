@@ -383,7 +383,7 @@ This document outlines the implementation plan for the simpleCommerce platform, 
 **Priority:** MEDIUM - Enhances user experience
 
 ### 7.2 Notification Triggers
-- [ ] Integrate notification creation for:
+- [x] Integrate notification creation for:
   - Payment approved
   - Payment rejected
   - Payment resubmission requested
@@ -695,14 +695,13 @@ This document outlines the implementation plan for the simpleCommerce platform, 
 
 ## Next Steps
 
-1. **Phase 7.2 – Notification Triggers:** Integrate notification creation for payment approved/rejected, order status updates, new order, new payment submitted.
-2. **Phase 10 – Category Management:** Backend and UI for categories (optional; frontend already has AdminCategoriesPage if backend is ready).
-3. Set up CI/CD pipeline (if not already done).
-4. Set up testing framework.
+1. **Phase 10 – Category Management:** Backend and UI for categories (optional; frontend already has AdminCategoriesPage if backend is ready).
+2. Set up CI/CD pipeline (if not already done).
+3. Set up testing framework.
 
 ---
 
 **Document Status:** Draft v1.0  
-**Last Updated:** Phase 9.4 Admin Dashboard completed  
-**Next Review:** After Phase 7.2 or Phase 10
+**Last Updated:** Phase 7.2 Notification Triggers completed; MVP core phases finalized  
+**Next Review:** As needed for Phase 10 or reporting
 

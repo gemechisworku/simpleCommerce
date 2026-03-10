@@ -11,10 +11,13 @@ from uuid import UUID
 from app.models.order import Order, OrderItem, OrderStatus, OrderStatusHistory
 from app.models.product import Product, ProductVariant
 from app.models.delivery_zone import DeliveryZone
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.core.exceptions import NotFoundError, BusinessRuleError, ConflictError
 from app.utils.helpers import generate_order_number, calculate_delivery_dates
 from app.schemas.order import OrderCreate, OrderItemCreate
+from app.services.notification import create_notification
+from app.services.user.user_service import get_user_ids_by_roles
+from app.models.notification import NotificationType
 import logging
 
 logger = logging.getLogger(__name__)
@@ -148,6 +151,14 @@ def create_order(db: Session, user_id: UUID, order_data: OrderCreate) -> Order:
     
     db.commit()
     db.refresh(order)
+
+    # Notify sales/admin users of new order
+    for uid in get_user_ids_by_roles(db, [UserRole.SALES, UserRole.ADMIN]):
+        create_notification(
+            db, uid, NotificationType.NEW_ORDER,
+            "New order",
+            f"New order {order.order_number} has been placed. Total: {order.total}."
+        )
     
     logger.info(f"Created order: {order.order_number} (id: {order.id})")
     return order
@@ -373,6 +384,22 @@ def update_order_status(
     
     db.commit()
     db.refresh(order)
+
+    # Notify customer of order status change
+    if order.user_id:
+        if new_status == OrderStatus.DISPATCHED:
+            ntype = NotificationType.ORDER_DISPATCHED
+            title = "Order dispatched"
+            message = f"Your order {order.order_number} has been dispatched."
+        elif new_status == OrderStatus.DELIVERED:
+            ntype = NotificationType.ORDER_DELIVERED
+            title = "Order delivered"
+            message = f"Your order {order.order_number} has been delivered."
+        else:
+            ntype = NotificationType.ORDER_STATUS_UPDATED
+            title = "Order status updated"
+            message = f"Your order {order.order_number} status is now {new_status.value}."
+        create_notification(db, order.user_id, ntype, title, message)
     
     logger.info(f"Updated order {order.order_number} status: {old_status.value} -> {new_status.value}")
     return order

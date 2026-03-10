@@ -13,8 +13,8 @@ RUN npm cache clean --force && \
 # Copy application code
 COPY . .
 
-# Expose port
-EXPOSE 3000
+# Expose port (must match PORT in docker-compose for dev)
+EXPOSE 3001
 
 # Set environment variable for React Scripts
 ENV CHOKIDAR_USEPOLLING=true

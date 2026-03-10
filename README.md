@@ -90,7 +90,7 @@ simpleCommerce/
    ```
 
 4. **Access the application**
-   - Frontend: http://localhost:3000
+   - Frontend: http://localhost:3001 (or `FRONTEND_PORT` if set)
    - Backend API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
    - MinIO Console: http://localhost:9001
@@ -134,6 +134,56 @@ simpleCommerce/
    ```bash
    npm start
    ```
+
+## Admin Dashboard & Configuration
+
+### Accessing the admin dashboard
+
+1. **URL:** Open **http://localhost:3001/admin** (use your frontend port if different).
+2. **Login:** You must be logged in with a **sales** or **admin** role. Customer accounts cannot access `/admin`.
+
+### First-time setup: create an admin user
+
+To get your first admin account, seed the database (creates a default admin and optional mock data):
+
+```bash
+cd backend
+# With venv activated, or from project root with Docker:
+docker compose exec backend python -m scripts.seed_mock_data
+```
+
+**Default seeded admin (development):**
+- **Phone:** `+251911111111` (override with `SUPERADMIN_PHONE`)
+- **OTP in dev:** After you click “Request OTP” on the login page, the 6-digit code is printed in the **backend container logs** (e.g. `docker compose logs -f backend`). Use that code to verify and log in.
+
+Then:
+
+1. Go to **http://localhost:3001/login**
+2. Enter phone `+251911111111` (or your `SUPERADMIN_PHONE`)
+3. Click **Request OTP**, then check backend logs for the OTP code
+4. Enter the code and log in
+5. Open **http://localhost:3001/admin** or click **Store** in the header and use the admin nav
+
+### Where to configure things (admin UI)
+
+| What to configure | Where in admin |
+|-------------------|----------------|
+| **Dashboard** (metrics, recent orders) | `/admin` |
+| **Orders** (list, detail, status, cancel) | **Orders** |
+| **Payment queue** (approve / reject / request resubmit) | **Payments** |
+| **Products** (list, create, edit, delete, variants, images) | **Products** |
+| **Categories** | **Categories** |
+| **Delivery zones** (fees, ETA) | **Delivery Zones** |
+| **Payment methods** (bank, mobile money, etc.) | **Payment Methods** |
+| **Users** (create sales/admin, change roles) | **Users** (admin role only) |
+
+### Optional: customize seeded admin
+
+Set before running the seed script:
+
+- `SUPERADMIN_PHONE` – phone number (e.g. `+251912345678`)
+- `SUPERADMIN_EMAIL` – email (optional)
+- `SUPERADMIN_FIRST_NAME` / `SUPERADMIN_LAST_NAME` – display name
 
 ## Environment Variables
 
