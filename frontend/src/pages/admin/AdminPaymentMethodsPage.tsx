@@ -10,6 +10,7 @@ export function AdminPaymentMethodsPage() {
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(null);
   const [form, setForm] = useState({
     type: 'BANK_TRANSFER' as string,
     name: '',
@@ -17,6 +18,7 @@ export function AdminPaymentMethodsPage() {
     account_holder: '',
     instructions: '',
     is_active: true,
+    sort_order: 0,
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -29,6 +31,7 @@ export function AdminPaymentMethodsPage() {
   useEffect(() => { load(); }, []);
 
   const openCreate = () => {
+    setEditingMethod(null);
     setForm({
       type: 'BANK_TRANSFER',
       name: '',
@@ -36,6 +39,22 @@ export function AdminPaymentMethodsPage() {
       account_holder: '',
       instructions: '',
       is_active: true,
+      sort_order: 0,
+    });
+    setShowForm(true);
+    setError('');
+  };
+
+  const openEdit = (m: PaymentMethod) => {
+    setEditingMethod(m);
+    setForm({
+      type: m.type ?? 'BANK_TRANSFER',
+      name: m.name,
+      account_identifier: m.account_identifier,
+      account_holder: m.account_holder,
+      instructions: m.instructions ?? '',
+      is_active: m.is_active ?? true,
+      sort_order: m.sort_order ?? 0,
     });
     setShowForm(true);
     setError('');
@@ -46,15 +65,28 @@ export function AdminPaymentMethodsPage() {
     setError('');
     setSaving(true);
     try {
-      await adminService.createPaymentMethod({
-        type: form.type,
-        name: form.name,
-        account_identifier: form.account_identifier,
-        account_holder: form.account_holder,
-        instructions: form.instructions || undefined,
-        is_active: form.is_active,
-      });
+      if (editingMethod) {
+        await adminService.updatePaymentMethod(editingMethod.id, {
+          name: form.name,
+          account_identifier: form.account_identifier,
+          account_holder: form.account_holder,
+          instructions: form.instructions || undefined,
+          is_active: form.is_active,
+          sort_order: form.sort_order,
+        });
+      } else {
+        await adminService.createPaymentMethod({
+          type: form.type,
+          name: form.name,
+          account_identifier: form.account_identifier,
+          account_holder: form.account_holder,
+          instructions: form.instructions || undefined,
+          is_active: form.is_active,
+          sort_order: form.sort_order,
+        });
+      }
       setShowForm(false);
+      setEditingMethod(null);
       load();
     } catch (err: unknown) {
       const msg = err && typeof err === 'object' && 'response' in err
@@ -73,19 +105,21 @@ export function AdminPaymentMethodsPage() {
         <button className="btn-primary" onClick={openCreate}>+ New Method</button>
       </div>
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)}>
+        <div className="modal-overlay" onClick={() => { setShowForm(false); setEditingMethod(null); }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>Create Payment Method</h2>
+            <h2>{editingMethod ? 'Edit Payment Method' : 'Create Payment Method'}</h2>
             {error && <p className="error">{error}</p>}
             <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Type *</label>
-                <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))} required>
-                  {PAYMENT_TYPES.map((t) => (
-                    <option key={t} value={t}>{t.replace('_', ' ')}</option>
-                  ))}
-                </select>
-              </div>
+              {!editingMethod && (
+                <div className="form-group">
+                  <label>Type *</label>
+                  <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))} required>
+                    {PAYMENT_TYPES.map((t) => (
+                      <option key={t} value={t}>{t.replace('_', ' ')}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="form-group">
                 <label>Name *</label>
                 <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required placeholder="e.g. CBE Bank" />
@@ -101,6 +135,10 @@ export function AdminPaymentMethodsPage() {
               <div className="form-group">
                 <label>Instructions</label>
                 <textarea value={form.instructions} onChange={(e) => setForm((f) => ({ ...f, instructions: e.target.value }))} rows={2} placeholder="Transfer instructions" />
+              </div>
+              <div className="form-group">
+                <label>Sort order</label>
+                <input type="number" min={0} value={form.sort_order} onChange={(e) => setForm((f) => ({ ...f, sort_order: parseInt(e.target.value, 10) || 0 }))} />
               </div>
               <label><input type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} /> Active</label>
               <div className="form-actions">
@@ -121,8 +159,9 @@ export function AdminPaymentMethodsPage() {
             <div key={m.id} className="crud-card">
               <div className="card-body">
                 <h3>{m.name}</h3>
-                <p className="card-meta">{m.type.replace('_', ' ')} · {m.account_identifier}</p>
+                <p className="card-meta">{m.type?.replace('_', ' ') ?? '—'} · {m.account_identifier}</p>
                 <p className="card-meta">{m.account_holder}</p>
+                <button type="button" className="btn-secondary" onClick={() => openEdit(m)}>Edit</button>
               </div>
             </div>
           ))}

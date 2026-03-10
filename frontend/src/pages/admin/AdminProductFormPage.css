@@ -10,6 +10,11 @@
 .admin-product-form .variant-row { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
 .admin-product-form .variant-row input { padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 6px; min-width: 80px; }
 .admin-product-form .btn-remove { padding: 8px 12px; border: 1px solid var(--color-status-error); color: var(--color-status-error); background: white; border-radius: 6px; cursor: pointer; }
+.admin-product-form .product-images-grid { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+.admin-product-form .product-image-item { position: relative; width: 120px; }
+.admin-product-form .product-image-item img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid var(--color-border); }
+.admin-product-form .product-image-item .btn-remove { margin-top: 8px; width: 100%; }
+.admin-product-form .muted { color: var(--color-text-muted); font-size: 0.875rem; margin-left: 8px; }
 .admin-product-form .form-actions { display: flex; gap: 12px; margin-top: 24px; }
 .admin-product-form .btn-primary { padding: 12px 24px; background: var(--color-primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
 .admin-product-form .btn-secondary { padding: 12px 24px; border: 1px solid var(--color-border); background: white; border-radius: 8px; cursor: pointer; }

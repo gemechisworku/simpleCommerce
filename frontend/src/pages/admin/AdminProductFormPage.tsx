@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { adminService, Category } from '../../services/adminService';
 import { Product } from '../../types';
+import { resolveImageUrl } from '../../constants/api';
 import './AdminProductFormPage.css';
 
-type VariantRow = { label: string; price: string; stock_qty: number; sku: string };
+type VariantRow = { id?: number; label: string; price: string; stock_qty: number; sku: string };
+
+type ProductImageItem = { id: number; url: string; alt_text?: string | null; sort_order: number };
 
 export function AdminProductFormPage() {
   const { productId } = useParams<{ productId: string }>();
@@ -14,6 +17,8 @@ export function AdminProductFormPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
+  const [images, setImages] = useState<ProductImageItem[]>([]);
+  const [imageUploading, setImageUploading] = useState(false);
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -22,6 +27,7 @@ export function AdminProductFormPage() {
     is_featured: false,
   });
   const [variants, setVariants] = useState<VariantRow[]>([{ label: '', price: '', stock_qty: 0, sku: '' }]);
+  const [variantIdsToDelete, setVariantIdsToDelete] = useState<number[]>([]);
 
   useEffect(() => {
     adminService.listCategories(false).then(setCategories).catch(() => {});
@@ -39,20 +45,58 @@ export function AdminProductFormPage() {
       });
       if (p.variants && p.variants.length > 0) {
         setVariants(p.variants.map((v) => ({
+          id: v.id,
           label: v.label,
           price: String(v.price),
           stock_qty: v.stock_qty,
           sku: v.sku || '',
         })));
       }
+      setVariantIdsToDelete([]);
     }).catch(() => setError('Failed to load product')).finally(() => setLoading(false));
   }, [productId]);
+
+  const loadImages = () => {
+    if (!productId) return;
+    adminService.listProductImages(Number(productId)).then(setImages).catch(() => {});
+  };
+
+  useEffect(() => {
+    if (isEdit && productId) loadImages();
+  }, [isEdit, productId]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !productId) return;
+    setImageUploading(true);
+    try {
+      await adminService.uploadProductImage(Number(productId), file);
+      loadImages();
+    } catch {
+      setError('Failed to upload image');
+    } finally {
+      setImageUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleDeleteImage = async (imageId: number) => {
+    if (!productId || !window.confirm('Delete this image?')) return;
+    try {
+      await adminService.deleteProductImage(Number(productId), imageId);
+      loadImages();
+    } catch {
+      setError('Failed to delete image');
+    }
+  };
 
   const addVariant = () => {
     setVariants((v) => [...v, { label: '', price: '', stock_qty: 0, sku: '' }]);
   };
 
   const removeVariant = (i: number) => {
+    const row = variants[i];
+    if (row?.id) setVariantIdsToDelete((ids) => [...ids, row.id!]);
     setVariants((v) => v.filter((_, j) => j !== i));
   };
 
@@ -78,7 +122,7 @@ export function AdminProductFormPage() {
       return;
     }
     try {
-      if (isEdit) {
+      if (isEdit && productId) {
         await adminService.updateProduct(Number(productId), {
           name: form.name,
           description: form.description || undefined,
@@ -86,11 +130,24 @@ export function AdminProductFormPage() {
           is_active: form.is_active,
           is_featured: form.is_featured,
         });
-        // Add only new variants (existing variants shown read-only; full variant edit could be added later)
-        const existingCount = (await adminService.getProduct(Number(productId))).variants?.length ?? 0;
-        const newVariants = variantPayload.slice(existingCount);
-        for (const v of newVariants) {
-          await adminService.createVariant(Number(productId), v);
+        for (const id of variantIdsToDelete) {
+          await adminService.deleteVariant(id);
+        }
+        for (const row of variants) {
+          const payload = {
+            label: row.label.trim(),
+            price: row.price || '0',
+            stock_qty: Number(row.stock_qty) || 0,
+            sku: row.sku || undefined,
+          };
+          if (row.id) {
+            await adminService.updateVariant(row.id, payload);
+          } else if (row.label.trim()) {
+            await adminService.createVariant(Number(productId), {
+              ...payload,
+              is_active: true,
+            });
+          }
         }
       } else {
         await adminService.createProduct({
@@ -157,10 +214,30 @@ export function AdminProductFormPage() {
             <label><input type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} /> Active</label>
           </div>
         </div>
+        {isEdit && (
+          <div className="form-section">
+            <h2>Product Images</h2>
+            {images.length > 0 && (
+              <div className="product-images-grid">
+                {images.map((img) => (
+                  <div key={img.id} className="product-image-item">
+                    <img src={resolveImageUrl(img.url) ?? img.url} alt={img.alt_text ?? 'Product'} />
+                    <button type="button" className="btn-remove" onClick={() => handleDeleteImage(img.id)}>Remove</button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="form-group">
+              <label>Upload image (JPG/PNG, max 5MB)</label>
+              <input type="file" accept="image/jpeg,image/png,image/jpg" onChange={handleImageUpload} disabled={imageUploading} />
+              {imageUploading && <span className="muted">Uploading...</span>}
+            </div>
+          </div>
+        )}
         <div className="form-section">
           <h2>Variants</h2>
           {variants.map((v, i) => (
-            <div key={i} className="variant-row">
+            <div key={v.id ?? i} className="variant-row">
               <input placeholder="Label (e.g. 250g)" value={v.label} onChange={(e) => updateVariant(i, 'label', e.target.value)} required />
               <input type="number" placeholder="Price" value={v.price} onChange={(e) => updateVariant(i, 'price', e.target.value)} min={0} step="0.01" />
               <input type="number" placeholder="Stock" value={v.stock_qty} onChange={(e) => updateVariant(i, 'stock_qty', parseInt(e.target.value, 10) || 0)} min={0} />

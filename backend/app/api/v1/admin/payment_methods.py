@@ -14,7 +14,7 @@ from app.schemas.payment import (
     PaymentMethodResponse
 )
 from app.schemas.common import ResponseModel
-from app.services.payment import create_payment_method, list_payment_methods
+from app.services.payment import create_payment_method, list_payment_methods, update_payment_method
 from app.core.exceptions import NotFoundError
 
 router = APIRouter()
@@ -64,4 +64,47 @@ async def list_payment_methods_endpoint(
     """
     methods = list_payment_methods(db, active_only=active_only)
     return ResponseModel(data=[PaymentMethodResponse.model_validate(m) for m in methods])
+
+
+@router.get("/{method_id}", response_model=ResponseModel[PaymentMethodResponse], status_code=status.HTTP_200_OK)
+async def get_payment_method_endpoint(
+    method_id: int,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Get payment method by ID.
+    
+    Requires admin role.
+    """
+    from app.services.payment import get_payment_method_by_id
+    method = get_payment_method_by_id(db, method_id)
+    if not method:
+        raise NotFoundError(f"Payment method with id {method_id} not found")
+    return ResponseModel(data=PaymentMethodResponse.model_validate(method))
+
+
+@router.patch("/{method_id}", response_model=ResponseModel[PaymentMethodResponse], status_code=status.HTTP_200_OK)
+async def update_payment_method_endpoint(
+    method_id: int,
+    update_data: PaymentMethodUpdate,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Update payment method.
+    
+    Requires admin role.
+    """
+    method = update_payment_method(
+        db=db,
+        method_id=method_id,
+        name=update_data.name,
+        account_identifier=update_data.account_identifier,
+        account_holder=update_data.account_holder,
+        instructions=update_data.instructions,
+        is_active=update_data.is_active,
+        sort_order=update_data.sort_order
+    )
+    return ResponseModel(data=PaymentMethodResponse.model_validate(method))
 

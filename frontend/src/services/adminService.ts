@@ -71,17 +71,17 @@ export const adminService = {
   },
 
   async approvePayment(id: number, note?: string) {
-    const { data } = await api.post(`/payments/${id}/approve`, { note });
+    const { data } = await api.post(`/payments/queue/${id}/approve`, { note });
     return data;
   },
 
   async rejectPayment(id: number, reason: string) {
-    const { data } = await api.post(`/payments/${id}/reject`, { reason });
+    const { data } = await api.post(`/payments/queue/${id}/reject`, { reason });
     return data;
   },
 
   async requestPaymentResubmit(id: number, note?: string) {
-    const { data } = await api.post(`/payments/${id}/resubmit_request`, { note });
+    const { data } = await api.post(`/payments/queue/${id}/request-resubmission`, { note });
     return data;
   },
 
@@ -124,6 +124,11 @@ export const adminService = {
     await api.delete(`/admin/products/variants/${variantId}`);
   },
 
+  async listProductImages(productId: number) {
+    const { data } = await api.get<{ data: { id: number; url: string; alt_text?: string | null; sort_order: number }[] }>(`/admin/products/${productId}/images`);
+    return data.data;
+  },
+
   async uploadProductImage(productId: number, file: File) {
     const formData = new FormData();
     formData.append('file', file);
@@ -131,6 +136,10 @@ export const adminService = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return data.data;
+  },
+
+  async deleteProductImage(productId: number, imageId: number) {
+    await api.delete(`/admin/products/${productId}/images/${imageId}`);
   },
 
   // Categories
@@ -177,6 +186,16 @@ export const adminService = {
 
   async createPaymentMethod(payload: { type: string; name: string; account_identifier: string; account_holder: string; instructions?: string; is_active?: boolean; sort_order?: number }) {
     const { data } = await api.post<{ data: PaymentMethod }>('/admin/payment-methods', payload);
+    return data.data;
+  },
+
+  async getPaymentMethod(id: number) {
+    const { data } = await api.get<{ data: PaymentMethod }>(`/admin/payment-methods/${id}`);
+    return data.data;
+  },
+
+  async updatePaymentMethod(id: number, payload: Partial<{ name: string; account_identifier: string; account_holder: string; instructions: string; is_active: boolean; sort_order: number }>) {
+    const { data } = await api.patch<{ data: PaymentMethod }>(`/admin/payment-methods/${id}`, payload);
     return data.data;
   },
 

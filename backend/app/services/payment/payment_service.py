@@ -10,9 +10,12 @@ from uuid import UUID
 
 from app.models.payment import Payment, PaymentMethod, PaymentStatus, PaymentMethodType
 from app.models.order import Order, OrderStatus
-from app.models.user import User
+from app.models.user import User, UserRole
+from app.models.notification import NotificationType
 from app.core.exceptions import NotFoundError, BusinessRuleError
 from app.schemas.payment import PaymentSubmitRequest
+from app.services.notification import create_notification
+from app.services.user.user_service import get_user_ids_by_roles
 import logging
 
 logger = logging.getLogger(__name__)
@@ -55,6 +58,43 @@ def list_payment_methods(db: Session, active_only: bool = True) -> List[PaymentM
         query = query.filter(PaymentMethod.is_active == True)
     
     return query.order_by(PaymentMethod.sort_order.asc()).all()
+
+
+def get_payment_method_by_id(db: Session, method_id: int) -> Optional[PaymentMethod]:
+    """Get payment method by ID"""
+    return db.query(PaymentMethod).filter(PaymentMethod.id == method_id).first()
+
+
+def update_payment_method(
+    db: Session,
+    method_id: int,
+    name: Optional[str] = None,
+    account_identifier: Optional[str] = None,
+    account_holder: Optional[str] = None,
+    instructions: Optional[str] = None,
+    is_active: Optional[bool] = None,
+    sort_order: Optional[int] = None
+) -> PaymentMethod:
+    """Update payment method. Only provided fields are updated."""
+    method = get_payment_method_by_id(db, method_id)
+    if not method:
+        raise NotFoundError(f"Payment method with id {method_id} not found")
+    if name is not None:
+        method.name = name
+    if account_identifier is not None:
+        method.account_identifier = account_identifier
+    if account_holder is not None:
+        method.account_holder = account_holder
+    if instructions is not None:
+        method.instructions = instructions
+    if is_active is not None:
+        method.is_active = is_active
+    if sort_order is not None:
+        method.sort_order = sort_order
+    db.commit()
+    db.refresh(method)
+    logger.info(f"Updated payment method id {method_id}")
+    return method
 
 
 def submit_payment(
@@ -141,6 +181,14 @@ def submit_payment(
     
     db.commit()
     db.refresh(payment)
+    
+    # Notify sales/admin users of new payment submission
+    for uid in get_user_ids_by_roles(db, [UserRole.SALES, UserRole.ADMIN]):
+        create_notification(
+            db, uid, NotificationType.NEW_PAYMENT_SUBMITTED,
+            "New payment submitted",
+            f"Payment submitted for order {order.order_number}. Please review."
+        )
     
     logger.info(f"Submitted payment for order {order.order_number} (payment id: {payment.id})")
     return payment
@@ -246,6 +294,14 @@ def approve_payment(
     db.commit()
     db.refresh(payment)
     
+    # Notify customer
+    if order and order.user_id:
+        create_notification(
+            db, order.user_id, NotificationType.PAYMENT_APPROVED,
+            "Payment approved",
+            f"Your payment for order {order.order_number} has been approved."
+        )
+    
     logger.info(f"Approved payment {payment_id} for order {order.order_number if order else 'N/A'}")
     return payment
 
@@ -306,6 +362,14 @@ def reject_payment(
     db.commit()
     db.refresh(payment)
     
+    # Notify customer
+    if order and order.user_id:
+        create_notification(
+            db, order.user_id, NotificationType.PAYMENT_REJECTED,
+            "Payment rejected",
+            f"Your payment for order {order.order_number} was rejected. Reason: {reason}"
+        )
+    
     logger.info(f"Rejected payment {payment_id} for order {order.order_number if order else 'N/A'}")
     return payment
 
@@ -365,6 +429,14 @@ def request_payment_resubmission(
     
     db.commit()
     db.refresh(payment)
+    
+    # Notify customer
+    if order and order.user_id:
+        create_notification(
+            db, order.user_id, NotificationType.PAYMENT_RESUBMIT_REQUESTED,
+            "Payment resubmission requested",
+            f"Please resubmit your payment for order {order.order_number}." + (f" Note: {note}" if note else "")
+        )
     
     logger.info(f"Requested resubmission for payment {payment_id} for order {order.order_number if order else 'N/A'}")
     return payment

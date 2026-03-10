@@ -63,6 +63,14 @@ def get_user_by_id(db: Session, user_id: UUID) -> Optional[User]:
     return db.query(User).filter(User.id == user_id).first()
 
 
+def get_user_ids_by_roles(db: Session, roles: List[UserRole]) -> List[UUID]:
+    """Get user IDs that have any of the given roles (active users only)."""
+    if not roles:
+        return []
+    users = db.query(User).filter(User.role.in_(roles), User.is_active == True).all()
+    return [u.id for u in users]
+
+
 def create_admin_user(
     db: Session,
     phone: str,
