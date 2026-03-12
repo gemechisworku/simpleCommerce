@@ -1,5 +1,5 @@
 import api from './api';
-import { Order, PaginatedResponse, DeliveryZone } from '../types';
+import { Order, PaginatedResponse } from '../types';
 
 export interface OrderCreateInput {
   items: { product_id?: number; variant_id: number; quantity: number }[];

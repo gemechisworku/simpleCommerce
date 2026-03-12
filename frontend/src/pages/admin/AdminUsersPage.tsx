@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { adminService, UserListItem } from '../../services/adminService';
 
 const inputClass = "w-full rounded-lg border border-stroke bg-transparent px-4 py-2.5 text-black outline-none focus:border-primary dark:border-strokedark dark:text-white";
@@ -24,15 +24,15 @@ export function AdminUsersPage() {
   const [roleModal, setRoleModal] = useState<{ user: UserListItem } | null>(null);
   const [newRole, setNewRole] = useState('');
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     adminService.listUsers({ page }).then((res) => {
       setUsers(res.data);
       setTotalPages(res.meta.total_pages);
     }).catch(() => {}).finally(() => setLoading(false));
-  };
+  }, [page]);
 
-  useEffect(() => { load(); }, [page]);
+  useEffect(() => { load(); }, [load]);
 
   const openCreate = () => {
     setForm({ phone: '', email: '', first_name: '', last_name: '', role: 'sales' });

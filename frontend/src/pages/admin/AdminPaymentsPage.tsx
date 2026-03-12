@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { adminService } from '../../services/adminService';
 import { resolveImageUrl } from '../../constants/api';
 
@@ -25,15 +25,15 @@ export function AdminPaymentsPage() {
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     adminService.listPaymentQueue({ page }).then((res) => {
       setPayments(res.data);
       setTotalPages(res.meta.total_pages);
     }).catch(() => {}).finally(() => setLoading(false));
-  };
+  }, [page]);
 
-  useEffect(() => { load(); }, [page]);
+  useEffect(() => { load(); }, [load]);
 
   const handleAction = async () => {
     if (!actionModal) return;

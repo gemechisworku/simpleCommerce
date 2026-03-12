@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { adminService, Category } from '../../services/adminService';
 import { Product } from '../../types';
@@ -55,14 +55,14 @@ export function AdminProductFormPage() {
     }).catch(() => setError('Failed to load product')).finally(() => setLoading(false));
   }, [productId]);
 
-  const loadImages = () => {
+  const loadImages = useCallback(() => {
     if (!productId) return;
     adminService.listProductImages(Number(productId)).then(setImages).catch(() => {});
-  };
+  }, [productId]);
 
   useEffect(() => {
     if (isEdit && productId) loadImages();
-  }, [isEdit, productId]);
+  }, [isEdit, productId, loadImages]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

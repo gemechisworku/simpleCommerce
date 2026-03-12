@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { adminService } from '../../services/adminService';
 import { Product } from '../../types';
@@ -11,17 +11,15 @@ export function AdminProductsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     adminService.listProducts({ page, search: search || undefined }).then((res) => {
       setProducts(res.data);
       setTotalPages(res.meta.total_pages);
     }).catch(() => {}).finally(() => setLoading(false));
-  };
+  }, [page, search]);
 
-  useEffect(() => {
-    load();
-  }, [page]);
+  useEffect(() => { load(); }, [load]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
