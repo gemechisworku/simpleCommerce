@@ -22,13 +22,15 @@ import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage';
 import { AdminDeliveryZonesPage } from './pages/admin/AdminDeliveryZonesPage';
 import { AdminPaymentMethodsPage } from './pages/admin/AdminPaymentMethodsPage';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
+import { ThemeProvider } from './contexts/ThemeContext';
 import './App.css';
 
 function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <Router>
+    <ThemeProvider>
+      <AuthProvider>
+        <CartProvider>
+          <Router>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route element={<StorefrontLayout />}>
@@ -58,6 +60,7 @@ function App() {
         </Router>
       </CartProvider>
     </AuthProvider>
+    </ThemeProvider>
   );
 }
 

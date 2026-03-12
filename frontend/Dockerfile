@@ -20,6 +20,6 @@ EXPOSE 3001
 ENV CHOKIDAR_USEPOLLING=true
 ENV WATCHPACK_POLLING=true
 
-# Start development server
-CMD ["npm", "start"]
+# Install deps at start so volume-mounted app always has current node_modules (including craco)
+CMD ["sh", "-c", "npm install --legacy-peer-deps && npm start"]
 

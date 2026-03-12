@@ -79,9 +79,20 @@ async def list_products_endpoint(
     )
     
     total_pages = (total + per_page - 1) // per_page
-    
+
+    # Build response with image_url from first image for each product
+    result_data = []
+    for p in products:
+        resp = ProductResponse.model_validate(p)
+        if p.images:
+            sorted_images = sorted(p.images, key=lambda x: x.sort_order)
+            first_url = sorted_images[0].url if sorted_images else None
+            if first_url:
+                resp = resp.model_copy(update={"image_url": first_url})
+        result_data.append(resp)
+
     return PaginatedResponse(
-        data=[ProductResponse.model_validate(p) for p in products],
+        data=result_data,
         meta=PaginationMeta(
             page=page,
             per_page=per_page,

@@ -177,6 +177,8 @@ def list_products(
     # Get total count
     total = query.count()
     
+    # Eager-load images for list responses (e.g. admin list with image_url)
+    query = query.options(joinedload(Product.images))
     # Apply pagination and ordering
     products = query.order_by(Product.created_at.desc()).offset(skip).limit(limit).all()
     

@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { adminService } from '../../services/adminService';
 import { DeliveryZone } from '../../types';
-import './AdminCrudPage.css';
-import './AdminDeliveryZonesPage.css';
+
+const formInputClass = "w-full rounded-lg border border-stroke bg-transparent px-4 py-2.5 text-black outline-none focus:border-primary dark:border-strokedark dark:text-white";
+const formLabelClass = "mb-1.5 block text-sm font-medium text-black dark:text-white";
+const btnPrimary = "rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-primary-dark disabled:opacity-50";
+const btnSecondary = "rounded-lg border border-stroke px-4 py-2 font-medium text-black hover:bg-gray-1 dark:border-strokedark dark:text-white dark:hover:bg-white/5";
 
 export function AdminDeliveryZonesPage() {
   const [zones, setZones] = useState<DeliveryZone[]>([]);
@@ -96,63 +99,73 @@ export function AdminDeliveryZonesPage() {
   };
 
   return (
-    <div className="admin-crud-page admin-delivery-zones-page">
-      <div className="page-header">
-        <h1>Delivery Zones</h1>
-        <button className="btn-primary" onClick={openCreate}>+ New Zone</button>
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-black dark:text-white">Delivery Zones</h2>
+          <p className="mt-1 text-body dark:text-body-dark">Configure delivery areas, fees and ETA</p>
+        </div>
+        <button type="button" onClick={openCreate} className={btnPrimary}>+ New Zone</button>
       </div>
+
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>{editing ? 'Edit Zone' : 'Create Zone'}</h2>
-            {error && <p className="error">{error}</p>}
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Name *</label>
-                <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowForm(false)}>
+          <div className="w-full max-w-md rounded-lg border border-stroke bg-white p-6 shadow-xl dark:border-strokedark dark:bg-meta-4" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-black dark:text-white">{editing ? 'Edit Zone' : 'Create Zone'}</h3>
+            {error && <p className="mt-2 text-sm text-danger">{error}</p>}
+            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+              <div>
+                <label className={formLabelClass}>Name *</label>
+                <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required className={formInputClass} />
               </div>
-              <div className="form-group">
-                <label>Description</label>
-                <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={2} />
+              <div>
+                <label className={formLabelClass}>Description</label>
+                <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={2} className={formInputClass} />
               </div>
-              <div className="form-group">
-                <label>Fee (ETB) *</label>
-                <input type="number" value={form.fee} onChange={(e) => setForm((f) => ({ ...f, fee: e.target.value }))} min={0} step="0.01" required />
+              <div>
+                <label className={formLabelClass}>Fee (ETB) *</label>
+                <input type="number" value={form.fee} onChange={(e) => setForm((f) => ({ ...f, fee: e.target.value }))} min={0} step="0.01" required className={formInputClass} />
               </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>ETA Min (days)</label>
-                  <input type="number" value={form.eta_min_days} onChange={(e) => setForm((f) => ({ ...f, eta_min_days: parseInt(e.target.value, 10) || 0 }))} min={0} />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={formLabelClass}>ETA Min (days)</label>
+                  <input type="number" value={form.eta_min_days} onChange={(e) => setForm((f) => ({ ...f, eta_min_days: parseInt(e.target.value, 10) || 0 }))} min={0} className={formInputClass} />
                 </div>
-                <div className="form-group">
-                  <label>ETA Max (days)</label>
-                  <input type="number" value={form.eta_max_days} onChange={(e) => setForm((f) => ({ ...f, eta_max_days: parseInt(e.target.value, 10) || 1 }))} min={1} />
+                <div>
+                  <label className={formLabelClass}>ETA Max (days)</label>
+                  <input type="number" value={form.eta_max_days} onChange={(e) => setForm((f) => ({ ...f, eta_max_days: parseInt(e.target.value, 10) || 1 }))} min={1} className={formInputClass} />
                 </div>
               </div>
-              <label><input type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} /> Active</label>
-              <div className="form-actions">
-                <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
-                <button type="button" className="btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} className="rounded border-stroke" />
+                <span className="text-sm text-black dark:text-white">Active</span>
+              </label>
+              <div className="flex gap-2 pt-2">
+                <button type="submit" className={btnPrimary} disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
+                <button type="button" className={btnSecondary} onClick={() => setShowForm(false)}>Cancel</button>
               </div>
             </form>
           </div>
         </div>
       )}
+
       {loading ? (
-        <p>Loading...</p>
+        <div className="flex items-center justify-center py-16">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-r-transparent"></div>
+        </div>
       ) : zones.length === 0 ? (
-        <p>No delivery zones.</p>
+        <div className="rounded-lg border border-stroke bg-white p-12 text-center dark:border-strokedark dark:bg-meta-4">
+          <p className="text-body dark:text-body-dark">No delivery zones.</p>
+        </div>
       ) : (
-        <div className="crud-list">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {zones.map((z) => (
-            <div key={z.id} className="crud-card">
-              <div className="card-body">
-                <h3>{z.name}</h3>
-                <p className="card-meta">Fee: ETB {z.fee} · ETA: {z.eta_min_days}-{z.eta_max_days} days</p>
-                <span className={`badge ${z.is_active ? 'active' : 'inactive'}`}>{z.is_active ? 'Active' : 'Inactive'}</span>
-              </div>
-              <div className="card-actions">
-                <button className="btn-edit" onClick={() => openEdit(z)}>Edit</button>
+            <div key={z.id} className="rounded-lg border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-meta-4">
+              <h3 className="font-semibold text-black dark:text-white">{z.name}</h3>
+              <p className="mt-1 text-sm text-body dark:text-body-dark">Fee: ETB {z.fee} · ETA: {z.eta_min_days}-{z.eta_max_days} days</p>
+              <span className={`mt-2 inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${z.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{z.is_active ? 'Active' : 'Inactive'}</span>
+              <div className="mt-4">
+                <button type="button" onClick={() => openEdit(z)} className={btnSecondary}>Edit</button>
               </div>
             </div>
           ))}

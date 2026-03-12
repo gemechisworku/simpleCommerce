@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/authService';
-import './LoginPage.css';
 
 type Step = 'phone' | 'otp';
 
@@ -76,55 +75,61 @@ export function LoginPage() {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-card">
-        <h1>simpleCommerce</h1>
-        <p className="login-subtitle">Sign in to continue</p>
+    <div className="flex min-h-[60vh] items-center justify-center px-4 py-8">
+      <div className="w-full max-w-md rounded-xl border border-stroke dark:border-strokedark bg-white dark:bg-meta-4 p-6 shadow-sm">
+        <h1 className="text-2xl font-bold text-black dark:text-white">simpleCommerce</h1>
+        <p className="mt-1 text-black dark:text-white">Sign in to continue</p>
 
         {step === 'phone' ? (
-          <form onSubmit={handleRequestOtp}>
-            <label htmlFor="phone">Phone number</label>
-            <input
-              id="phone"
-              type="tel"
-              placeholder="0912345678"
-              value={phone || ''}
-              onChange={(e) => setPhone(e.target.value)}
-              disabled={loading}
-            />
-            <button type="submit" disabled={loading}>
+          <form onSubmit={handleRequestOtp} className="mt-6 space-y-4">
+            <div>
+              <label htmlFor="phone" className="mb-1 block text-sm font-medium text-black dark:text-white">Phone number</label>
+              <input
+                id="phone"
+                type="tel"
+                placeholder="0912345678"
+                value={phone || ''}
+                onChange={(e) => setPhone(e.target.value)}
+                disabled={loading}
+                className="w-full rounded-lg border border-stroke dark:border-strokedark bg-white dark:bg-meta-4 px-4 py-2.5 text-black dark:text-white placeholder:text-gray-2"
+              />
+            </div>
+            <button type="submit" disabled={loading} className="w-full rounded-lg bg-primary py-2.5 font-medium text-white hover:opacity-90 disabled:opacity-50">
               {loading ? 'Sending...' : 'Send OTP'}
             </button>
           </form>
         ) : (
-          <form onSubmit={handleVerifyOtp}>
-            <p className="otp-sent">OTP sent to {phone}</p>
-            <label htmlFor="otp">Enter 6-digit code</label>
-            <input
-              id="otp"
-              type="text"
-              inputMode="numeric"
-              maxLength={6}
-              placeholder="123456"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-              disabled={loading}
-            />
-            <button type="submit" disabled={loading}>
+          <form onSubmit={handleVerifyOtp} className="mt-6 space-y-4">
+            <p className="text-sm text-black dark:text-white">OTP sent to {phone}</p>
+            <div>
+              <label htmlFor="otp" className="mb-1 block text-sm font-medium text-black dark:text-white">Enter 6-digit code</label>
+              <input
+                id="otp"
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                placeholder="123456"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                disabled={loading}
+                className="w-full rounded-lg border border-stroke dark:border-strokedark bg-white dark:bg-meta-4 px-4 py-2.5 text-black dark:text-white placeholder:text-gray-2"
+              />
+            </div>
+            <button type="submit" disabled={loading} className="w-full rounded-lg bg-primary py-2.5 font-medium text-white hover:opacity-90 disabled:opacity-50">
               {loading ? 'Verifying...' : 'Verify'}
             </button>
             <button
               type="button"
-              className="btn-back"
               onClick={() => { setStep('phone'); setOtp(''); setError(''); }}
               disabled={loading}
+              className="w-full rounded-lg border border-stroke dark:border-strokedark py-2.5 font-medium text-black dark:text-white hover:bg-gray-1 dark:hover:bg-white/10 disabled:opacity-50"
             >
               Change number
             </button>
           </form>
         )}
 
-        {error && <p className="error-msg">{error}</p>}
+        {error && <p className="mt-4 text-sm text-danger">{error}</p>}
       </div>
     </div>
   );
