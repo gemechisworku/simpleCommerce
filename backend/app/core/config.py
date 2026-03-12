@@ -1,34 +1,54 @@
 """
 Application configuration
 """
+import json
 from pydantic_settings import BaseSettings
-from typing import List
+from pydantic import field_validator
+from typing import List, Union
 
 
 class Settings(BaseSettings):
     """Application settings"""
-    
+
     # Database
     DATABASE_URL: str = "postgresql://simplecommerce:simplecommerce@db:5432/simplecommerce"
-    
+
     # JWT
     JWT_SECRET_KEY: str = "your-secret-key-change-in-production"
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-    
+
     # MinIO
     MINIO_ENDPOINT: str = "minio:9000"
     MINIO_ACCESS_KEY: str = "minioadmin"
     MINIO_SECRET_KEY: str = "minioadmin"
     MINIO_BUCKET_NAME: str = "simplecommerce-uploads"
     MINIO_USE_SSL: bool = False
-    
+
     # Application
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
     API_V1_PREFIX: str = "/api/v1"
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001"]
+    CORS_ORIGINS: Union[str, List[str]] = ["http://localhost:3000", "http://localhost:3001"]
+
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
+        """Accept JSON array, comma-separated string, or single URL (e.g. from Railway env)."""
+        if isinstance(v, list):
+            return v
+        if isinstance(v, str):
+            s = v.strip()
+            if not s:
+                return ["http://localhost:3000", "http://localhost:3001"]
+            if s.startswith("["):
+                try:
+                    return json.loads(s)
+                except json.JSONDecodeError:
+                    pass
+            return [origin.strip() for origin in s.split(",") if origin.strip()]
+        return ["http://localhost:3000", "http://localhost:3001"]
     
     # OTP
     OTP_EXPIRY_MINUTES: int = 5
