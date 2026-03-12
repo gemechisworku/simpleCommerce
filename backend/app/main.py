@@ -24,9 +24,17 @@ app = FastAPI(
 )
 
 # CORS middleware
+# In development, also allow common tunnel/deploy origins (Vercel, ngrok, Cloudflare)
+_cors_origin_regex = (
+    r"https://.*\.(vercel\.app|ngrok-free\.app|ngrok-free\.dev|trycloudflare\.com)"
+    if settings.ENVIRONMENT == "development"
+    else None
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=_cors_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
