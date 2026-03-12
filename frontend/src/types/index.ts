@@ -123,6 +123,8 @@ export interface Order {
   created_at: string;
   items: OrderItem[];
   status_history?: OrderStatusHistory[];
+  /** Reason shown when payment was rejected or resubmission was requested */
+  payment_review_note?: string | null;
 }
 
 export interface PaymentMethod {

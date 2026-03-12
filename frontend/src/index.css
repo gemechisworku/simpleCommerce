@@ -15,6 +15,15 @@ body {
   @apply bg-white text-black dark:bg-meta-4 dark:text-white;
 }
 
+/* Native select: ensure dropdown option list is readable in dark mode */
+.dark select {
+  color: #e2e8f0;
+}
+.dark select option {
+  background: #1c2434;
+  color: #e2e8f0;
+}
+
 @layer components {
   .badge-success { @apply inline-flex rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success; }
   .badge-warning { @apply inline-flex rounded-full bg-warning/10 px-2.5 py-0.5 text-xs font-medium text-warning; }

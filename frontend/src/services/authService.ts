@@ -23,6 +23,18 @@ export const authService = {
     return authData;
   },
 
+  /** Verify Telegram WebApp initData and log in (for Mini App). */
+  async verifyTelegram(initData: string) {
+    const { data } = await api.post<{ data: AuthResponse }>('/auth/telegram/verify', {
+      init_data: initData,
+    });
+    const authData = data.data;
+    localStorage.setItem(TOKEN_KEY, authData.access_token);
+    localStorage.setItem(REFRESH_TOKEN_KEY, authData.refresh_token);
+    localStorage.setItem(USER_KEY, JSON.stringify(authData.user));
+    return authData.user;
+  },
+
   async logout() {
     try {
       await api.post('/auth/logout', {

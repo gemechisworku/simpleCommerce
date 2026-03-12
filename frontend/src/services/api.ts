@@ -13,6 +13,10 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // FormData must be sent with multipart/form-data and boundary; let the browser set Content-Type
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  }
   return config;
 });
 
@@ -26,14 +30,16 @@ api.interceptors.response.use(
       const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
       if (refreshToken) {
         try {
-          const { data } = await axios.post<{ data: { access_token: string } }>(
+          const { data } = await axios.post<{ data: { access_token: string; refresh_token?: string } }>(
             `${API_BASE_URL}/auth/refresh`,
             { refresh_token: refreshToken }
           );
-          const newToken = data.data.access_token;
-          localStorage.setItem(TOKEN_KEY, newToken);
+          const newAccessToken = data.data.access_token;
+          const newRefreshToken = data.data.refresh_token;
+          localStorage.setItem(TOKEN_KEY, newAccessToken);
+          if (newRefreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
           if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           }
           return api(originalRequest);
         } catch {

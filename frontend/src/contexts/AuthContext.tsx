@@ -18,11 +18,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = authService.getStoredUser();
-    if (storedUser && authService.isAuthenticated()) {
-      setUser(storedUser);
-    }
-    setIsLoading(false);
+    let cancelled = false;
+    (async () => {
+      const storedUser = authService.getStoredUser();
+      if (storedUser && authService.isAuthenticated()) {
+        if (!cancelled) setUser(storedUser);
+        if (!cancelled) setIsLoading(false);
+        return;
+      }
+      // Telegram Mini App: auto-login with initData when opened from Telegram
+      const tg = (window as unknown as { Telegram?: { WebApp?: { initData?: string; ready?: () => void; expand?: () => void } } }).Telegram;
+      const initData = tg?.WebApp?.initData;
+      if (initData && initData.length > 0) {
+        try {
+          const userData = await authService.verifyTelegram(initData);
+          if (!cancelled) setUser(userData);
+          tg?.WebApp?.ready?.();
+          tg?.WebApp?.expand?.();
+        } catch {
+          // Invalid or expired initData; user can still use phone login
+        }
+      }
+      if (!cancelled) setIsLoading(false);
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   const login = useCallback((userData: User) => {

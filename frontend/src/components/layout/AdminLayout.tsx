@@ -145,11 +145,11 @@ function AdminLayoutInner() {
               {userDropdownOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setUserDropdownOpen(false)} aria-hidden="true" />
-                  <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-lg border border-stroke dark:border-strokedark bg-white dark:bg-meta-4 py-2 shadow-lg">
+                  <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-lg border border-stroke dark:border-strokedark bg-white py-2 shadow-lg dark:bg-meta-4 [color-scheme:light] dark:[color-scheme:dark]">
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-black dark:text-white hover:bg-gray-2/10 dark:hover:bg-white/10 hover:text-danger"
+                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-800 hover:bg-gray-2/10 hover:text-danger dark:text-white dark:hover:bg-white/10 dark:hover:text-danger"
                     >
                       Logout
                     </button>

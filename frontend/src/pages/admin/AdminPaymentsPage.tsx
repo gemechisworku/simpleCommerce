@@ -11,12 +11,17 @@ interface Payment {
   created_at: string;
 }
 
+function isPdfUrl(url: string): boolean {
+  return url.toLowerCase().endsWith('.pdf');
+}
+
 export function AdminPaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [actionModal, setActionModal] = useState<{ payment: Payment; action: 'approve' | 'reject' | 'resubmit' } | null>(null);
+  const [viewAttachment, setViewAttachment] = useState<Payment | null>(null);
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -79,12 +84,25 @@ export function AdminPaymentsPage() {
             >
               <div className="flex flex-col gap-4 sm:flex-row">
                 {p.screenshot_url && (
-                  <div className="shrink-0">
-                    <img
-                      src={resolveImageUrl(p.screenshot_url) ?? p.screenshot_url}
-                      alt="Payment screenshot"
-                      className="max-h-48 rounded-lg border border-stroke object-cover dark:border-strokedark"
-                    />
+                  <div className="shrink-0 flex flex-col gap-2">
+                    {isPdfUrl(p.screenshot_url) ? (
+                      <div className="flex max-h-48 min-h-[120px] w-40 items-center justify-center rounded-lg border border-stroke bg-gray-1 dark:border-strokedark dark:bg-white/5">
+                        <span className="text-4xl text-body dark:text-body-dark">PDF</span>
+                      </div>
+                    ) : (
+                      <img
+                        src={resolveImageUrl(p.screenshot_url) ?? p.screenshot_url}
+                        alt="Payment document"
+                        className="max-h-48 rounded-lg border border-stroke object-cover dark:border-strokedark"
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setViewAttachment(p)}
+                      className="rounded-lg border border-stroke px-2 py-1 text-xs font-medium text-black hover:bg-gray-1 dark:border-strokedark dark:text-white dark:hover:bg-white/10"
+                    >
+                      View attachment
+                    </button>
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
@@ -118,6 +136,27 @@ export function AdminPaymentsPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {viewAttachment?.screenshot_url && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setViewAttachment(null)}>
+          <div className="relative max-h-[90vh] max-w-4xl overflow-hidden rounded-lg bg-white dark:bg-meta-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <button type="button" onClick={() => setViewAttachment(null)} className="absolute right-2 top-2 z-10 rounded bg-black/50 p-1.5 text-white hover:bg-black/70">✕</button>
+            {isPdfUrl(viewAttachment.screenshot_url) ? (
+              <iframe
+                title="Payment document"
+                src={resolveImageUrl(viewAttachment.screenshot_url) ?? viewAttachment.screenshot_url}
+                className="h-[85vh] w-full min-w-[320px]"
+              />
+            ) : (
+              <img
+                src={resolveImageUrl(viewAttachment.screenshot_url) ?? viewAttachment.screenshot_url}
+                alt="Payment document"
+                className="max-h-[85vh] max-w-full object-contain"
+              />
+            )}
+          </div>
         </div>
       )}
 

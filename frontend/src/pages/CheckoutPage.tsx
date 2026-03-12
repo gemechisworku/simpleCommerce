@@ -31,25 +31,58 @@ function CheckoutPageInner() {
       setError('Cart is empty');
       return;
     }
-    if (!form.delivery_zone_id || !form.delivery_address || !form.recipient_name || !form.recipient_phone) {
+    if (!form.delivery_zone_id || form.delivery_zone_id <= 0) {
+      setError('Please select a delivery zone');
+      return;
+    }
+    const addr = form.delivery_address.trim();
+    const name = form.recipient_name.trim();
+    const phone = form.recipient_phone.trim();
+    if (!addr || !name || !phone) {
       setError('Please fill all required fields');
+      return;
+    }
+    if (addr.length < 10) {
+      setError('Delivery address must be at least 10 characters');
+      return;
+    }
+    if (name.length > 100) {
+      setError('Recipient name must be 100 characters or less');
+      return;
+    }
+    if (phone.length > 20) {
+      setError('Recipient phone must be 20 characters or less');
       return;
     }
     setLoading(true);
     try {
       const order = await orderService.create({
-        items: items.map((i) => ({ variant_id: i.variant_id, quantity: i.quantity })),
+        items: items.map((i) => ({
+          product_id: i.product_id,
+          variant_id: i.variant_id,
+          quantity: i.quantity,
+        })),
         delivery_zone_id: form.delivery_zone_id,
-        delivery_address: form.delivery_address,
-        recipient_name: form.recipient_name,
-        recipient_phone: form.recipient_phone,
-        delivery_instructions: form.delivery_instructions || undefined,
+        delivery_address: addr,
+        recipient_name: name,
+        recipient_phone: phone,
+        delivery_instructions: form.delivery_instructions?.trim() || undefined,
       });
       clearCart();
       navigate(`/orders/${order.id}/payment`);
     } catch (err: unknown) {
-      const res = err && typeof err === 'object' && 'response' in err ? (err as { response?: { data?: { error?: { message?: string } } } }).response : undefined;
-      setError(res?.data?.error?.message || 'Failed to place order');
+      const res = err && typeof err === 'object' && 'response' in err ? (err as { response?: { status?: number; data?: { message?: string; error?: { message?: string }; detail?: Array<{ msg?: string; message?: string }> } } }).response : undefined;
+      if (res?.status === 401) {
+        setError('Session expired. Please log in again.');
+        return;
+      }
+      const data = res?.data;
+      let msg = data?.error?.message ?? data?.message;
+      const detail = data?.detail;
+      if (!msg && Array.isArray(detail) && detail.length > 0) {
+        msg = detail.map((d: { msg?: string; message?: string }) => d.msg ?? d.message).filter(Boolean).join('. ') || undefined;
+      }
+      setError(msg || 'Failed to place order');
     } finally {
       setLoading(false);
     }

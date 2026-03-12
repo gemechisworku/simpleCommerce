@@ -68,6 +68,12 @@ function PaymentUploadPageInner() {
   return (
     <div className="mx-auto max-w-xl space-y-6">
       <h1 className="text-2xl font-bold text-black dark:text-white">Upload payment for {order.order_number}</h1>
+      {order.payment_review_note && (
+        <div className="rounded-lg border border-warning/50 bg-warning/10 p-4">
+          <h2 className="mb-1 text-sm font-semibold text-black dark:text-white">Message from store</h2>
+          <p className="text-sm text-black dark:text-white">{order.payment_review_note}</p>
+        </div>
+      )}
       <div className="rounded-lg border border-stroke dark:border-strokedark bg-white dark:bg-meta-4 p-4">
         <p className="font-medium text-black dark:text-white"><strong>Total:</strong> ETB {order.total}</p>
       </div>
@@ -81,8 +87,8 @@ function PaymentUploadPageInner() {
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-black dark:text-white">Screenshot *</label>
-          <input type="file" accept="image/jpeg,image/png,image/jpg" onChange={(e) => setFile(e.target.files?.[0] || null)} required className="w-full rounded-lg border border-stroke dark:border-strokedark bg-white dark:bg-meta-4 px-4 py-2.5 text-black dark:text-white file:mr-2 file:rounded file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-white" />
+          <label className="mb-1 block text-sm font-medium text-black dark:text-white">Payment document (image or PDF) *</label>
+          <input type="file" accept="image/jpeg,image/png,image/jpg,application/pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} required className="w-full rounded-lg border border-stroke dark:border-strokedark bg-white dark:bg-meta-4 px-4 py-2.5 text-black dark:text-white file:mr-2 file:rounded file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-white" />
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-black dark:text-white">Amount paid (optional)</label>

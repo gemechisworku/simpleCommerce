@@ -18,8 +18,7 @@ export const paymentService = {
     if (reference) params.append('reference_text', reference);
     const { data } = await api.post<{ data: unknown }>(
       `/payments/submit?${params}`,
-      formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } }
+      formData
     );
     return data.data;
   },

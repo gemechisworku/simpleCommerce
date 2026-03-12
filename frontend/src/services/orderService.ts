@@ -2,7 +2,7 @@ import api from './api';
 import { Order, PaginatedResponse, DeliveryZone } from '../types';
 
 export interface OrderCreateInput {
-  items: { variant_id: number; quantity: number }[];
+  items: { product_id?: number; variant_id: number; quantity: number }[];
   delivery_zone_id: number;
   delivery_address: string;
   recipient_name: string;

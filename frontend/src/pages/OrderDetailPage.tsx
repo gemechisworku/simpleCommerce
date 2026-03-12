@@ -55,6 +55,12 @@ function OrderDetailPageInner() {
           ))}
         </div>
       </div>
+      {order.payment_review_note && (
+        <div className="rounded-lg border border-warning/50 bg-warning/10 p-4">
+          <h2 className="mb-1 text-sm font-semibold text-black dark:text-white">Message from store</h2>
+          <p className="text-sm text-black dark:text-white">{order.payment_review_note}</p>
+        </div>
+      )}
       {order.status_history && order.status_history.length > 0 && (
         <div>
           <h2 className="mb-2 text-lg font-semibold text-black dark:text-white">Status history</h2>
