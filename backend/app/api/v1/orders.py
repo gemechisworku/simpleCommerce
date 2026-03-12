@@ -100,7 +100,24 @@ async def get_my_order(
     if order.user_id != current_user.id:
         from app.core.exceptions import AuthorizationError
         raise AuthorizationError("You can only view your own orders")
-    
+
+    # Attach latest payment rejection/resubmit reason for customer
+    from app.models.payment import Payment
+    from sqlalchemy import or_, desc
+    latest_payment = (
+        db.query(Payment)
+        .filter(
+            Payment.order_id == order_id,
+            or_(Payment.status == "rejected", Payment.status == "resubmit_requested"),
+            Payment.review_note.isnot(None),
+            Payment.review_note != ""
+        )
+        .order_by(desc(Payment.reviewed_at), desc(Payment.updated_at))
+        .first()
+    )
+    if latest_payment:
+        setattr(order, "payment_review_note", latest_payment.review_note)
+
     return ResponseModel(data=OrderResponse.model_validate(order))
 
 

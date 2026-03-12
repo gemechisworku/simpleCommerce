@@ -12,7 +12,7 @@ from app.models.product import Product, ProductImage
 from app.schemas.product import ProductImageResponse, ProductImageCreate
 from app.schemas.common import ResponseModel
 from app.core.exceptions import NotFoundError, BusinessRuleError
-from app.core.storage import minio_client
+from app.core.storage import minio_client, ensure_bucket_exists
 from app.core.config import settings
 import logging
 
@@ -56,12 +56,14 @@ async def upload_product_image(
     file_extension = file.filename.split(".")[-1] if "." in file.filename else "jpg"
     filename = f"products/{product_id}/{uuid.uuid4()}.{file_extension}"
     
-    # Upload to MinIO
+    # Upload to MinIO (put_object expects a file-like object; ensure bucket exists)
     try:
+        from io import BytesIO
+        ensure_bucket_exists(settings.MINIO_BUCKET_NAME)
         minio_client.put_object(
             bucket_name=settings.MINIO_BUCKET_NAME,
             object_name=filename,
-            data=file_content,
+            data=BytesIO(file_content),
             length=len(file_content),
             content_type=content_type
         )

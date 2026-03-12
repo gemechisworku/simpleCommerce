@@ -12,6 +12,7 @@ from app.schemas.auth import (
     EmailOTPRequest,
     EmailOTPVerify,
     RefreshTokenRequest,
+    TelegramVerifyRequest,
     LogoutRequest,
     LoginResponse,
     OTPResponse,
@@ -29,7 +30,10 @@ from app.services.auth.token_service import (
     refresh_access_token,
     revoke_refresh_token
 )
+from app.services.auth.telegram_service import get_or_create_user_by_telegram
+from app.core.telegram import validate_telegram_init_data
 from app.models.auth import OTPType, OTPPurpose
+from app.core.exceptions import BusinessRuleError
 from app.api.dependencies import get_current_user
 from app.models.user import User
 from app.schemas.user import UserResponse
@@ -182,6 +186,51 @@ async def verify_email_otp_and_login(
         user_agent=user_agent
     )
     
+    return ResponseModel(data=LoginResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="Bearer",
+        expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=UserResponse.model_validate(user)
+    ))
+
+
+@router.post("/telegram/verify", response_model=ResponseModel[LoginResponse], status_code=status.HTTP_200_OK)
+async def verify_telegram_and_login(
+    request_data: TelegramVerifyRequest,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """
+    Verify Telegram WebApp initData and log in (or create telegram-only account).
+    Used when the app is opened as a Telegram Mini App.
+    """
+    payload = validate_telegram_init_data(request_data.init_data)
+    if not payload:
+        raise BusinessRuleError("Invalid or expired Telegram initData. Please open the app from Telegram again.")
+
+    tg_user = payload["user"]
+    telegram_user_id = str(tg_user.get("id"))
+    if not telegram_user_id:
+        raise BusinessRuleError("Invalid Telegram user data.")
+
+    user = get_or_create_user_by_telegram(
+        db=db,
+        telegram_user_id=telegram_user_id,
+        telegram_username=tg_user.get("username"),
+        first_name=tg_user.get("first_name"),
+        last_name=tg_user.get("last_name"),
+    )
+
+    ip_address = get_client_ip(request)
+    user_agent = request.headers.get("User-Agent")
+    access_token, refresh_token, _ = create_tokens_for_user(
+        db=db,
+        user=user,
+        ip_address=ip_address,
+        user_agent=user_agent
+    )
+
     return ResponseModel(data=LoginResponse(
         access_token=access_token,
         refresh_token=refresh_token,

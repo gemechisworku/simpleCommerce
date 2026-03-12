@@ -25,7 +25,7 @@ from app.services.payment import (
     reject_payment,
     request_payment_resubmission
 )
-from app.core.storage import minio_client
+from app.core.storage import minio_client, ensure_bucket_exists
 from app.core.config import settings
 from app.core.exceptions import BusinessRuleError
 import logging
@@ -51,10 +51,11 @@ async def submit_payment_endpoint(
     Requires authentication.
     Validates file type (jpg/png) and size (max 5MB).
     """
-    # Validate file type
-    content_type = file.content_type
-    if content_type not in settings.ALLOWED_FILE_TYPES.split(","):
-        raise BusinessRuleError(f"Invalid file type. Allowed types: {settings.ALLOWED_FILE_TYPES}")
+    # Validate file type (payment allows images + PDF)
+    content_type = file.content_type or "application/octet-stream"
+    allowed = [t.strip() for t in settings.PAYMENT_ALLOWED_FILE_TYPES.split(",")]
+    if content_type not in allowed:
+        raise BusinessRuleError(f"Invalid file type. Allowed: {settings.PAYMENT_ALLOWED_FILE_TYPES}")
     
     # Validate file size (5MB max)
     file_content = await file.read()
@@ -66,12 +67,14 @@ async def submit_payment_endpoint(
     file_extension = file.filename.split(".")[-1] if "." in file.filename else "jpg"
     filename = f"payments/{order_id}/{uuid.uuid4()}.{file_extension}"
     
-    # Upload to MinIO
+    # Upload to MinIO (put_object expects a file-like object with .read(), not raw bytes)
     try:
+        from io import BytesIO
+        ensure_bucket_exists(settings.MINIO_BUCKET_NAME)
         minio_client.put_object(
             bucket_name=settings.MINIO_BUCKET_NAME,
             object_name=filename,
-            data=file_content,
+            data=BytesIO(file_content),
             length=len(file_content),
             content_type=content_type
         )

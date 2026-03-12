@@ -43,11 +43,17 @@ class Settings(BaseSettings):
     # File Upload
     MAX_FILE_SIZE_MB: int = 5
     ALLOWED_FILE_TYPES: str = "image/jpeg,image/png,image/jpg"
+    # Payment documents: images + PDF
+    PAYMENT_ALLOWED_FILE_TYPES: str = "image/jpeg,image/png,image/jpg,application/pdf"
     
     # Pagination
     DEFAULT_PAGE_SIZE: int = 20
     MAX_PAGE_SIZE: int = 100
-    
+
+    # Telegram Mini App (optional)
+    TELEGRAM_BOT_TOKEN: str = ""
+    TELEGRAM_INIT_DATA_MAX_AGE_SECONDS: int = 86400  # 24 hours
+
     class Config:
         env_file = ".env"
         case_sensitive = True

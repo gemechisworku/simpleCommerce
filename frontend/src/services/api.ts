@@ -17,6 +17,10 @@ api.interceptors.request.use((config) => {
   if (config.data instanceof FormData) {
     delete config.headers['Content-Type'];
   }
+  // ngrok free tier shows an interstitial page; this header skips it so API calls get JSON
+  if (API_BASE_URL.includes('ngrok')) {
+    config.headers['ngrok-skip-browser-warning'] = 'true';
+  }
   return config;
 });
 
@@ -30,9 +34,12 @@ api.interceptors.response.use(
       const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
       if (refreshToken) {
         try {
+          const refreshHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+          if (API_BASE_URL.includes('ngrok')) refreshHeaders['ngrok-skip-browser-warning'] = 'true';
           const { data } = await axios.post<{ data: { access_token: string; refresh_token?: string } }>(
             `${API_BASE_URL}/auth/refresh`,
-            { refresh_token: refreshToken }
+            { refresh_token: refreshToken },
+            { headers: refreshHeaders }
           );
           const newAccessToken = data.data.access_token;
           const newRefreshToken = data.data.refresh_token;

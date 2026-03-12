@@ -34,6 +34,11 @@ class RefreshTokenRequest(BaseModel):
     refresh_token: str = Field(..., description="Refresh token")
 
 
+class TelegramVerifyRequest(BaseModel):
+    """Telegram WebApp initData verification request"""
+    init_data: str = Field(..., description="Telegram WebApp initData string")
+
+
 class LogoutRequest(BaseModel):
     """Logout request schema"""
     refresh_token: str = Field(..., description="Refresh token to revoke")

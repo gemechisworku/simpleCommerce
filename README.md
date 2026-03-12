@@ -197,11 +197,18 @@ Key variables:
 - `MINIO_ENDPOINT`: MinIO server endpoint
 - `MINIO_ACCESS_KEY`: MinIO access key
 - `MINIO_SECRET_KEY`: MinIO secret key
+- `TELEGRAM_BOT_TOKEN`: Bot token for Telegram Mini App auth (optional)
 
 ### Frontend (.env)
 
 - `REACT_APP_API_URL`: Backend API URL
 - `REACT_APP_ENVIRONMENT`: Environment (development/production)
+
+## Telegram Mini App
+
+The same frontend can run inside Telegram as a **Mini App**. Users open the app from your bot (menu button or link); they are auto-logged in with their Telegram account. No extra build is required.
+
+**Setup:** Create a bot with [@BotFather](https://t.me/BotFather), set `TELEGRAM_BOT_TOKEN` in the backend, deploy the frontend to a **public HTTPS** URL, then in BotFather set the **Menu button URL** to that URL. Full steps: [docs/TELEGRAM_MINI_APP.md](docs/TELEGRAM_MINI_APP.md).
 
 ## API Documentation
 
