@@ -53,9 +53,6 @@ logs/
 htmlcov/
 .tox/
 
-# Alembic
-alembic.ini
-
 # MyPy
 .mypy_cache/
 .dmypy.json

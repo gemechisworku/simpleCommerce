@@ -59,6 +59,8 @@ services:
       - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=15
       - JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
       - ENVIRONMENT=${ENVIRONMENT:-development}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_INIT_DATA_MAX_AGE_SECONDS=${TELEGRAM_INIT_DATA_MAX_AGE_SECONDS:-86400}
     volumes:
       - ./backend:/app
       - ./backend/app/migrations:/app/migrations
