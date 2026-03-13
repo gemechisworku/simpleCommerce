@@ -10,6 +10,7 @@ from app.core.database import get_db
 from app.api.dependencies import get_current_user
 from app.models.user import User
 from app.models.order import OrderStatus
+from app.models.payment import PaymentStatus
 from app.schemas.order import OrderCreate, OrderResponse, OrderListItemResponse, OrderCancelRequest
 from app.schemas.common import ResponseModel, PaginatedResponse, PaginationMeta
 from app.schemas.payment import PaymentMethodResponse
@@ -108,7 +109,7 @@ async def get_my_order(
         db.query(Payment)
         .filter(
             Payment.order_id == order_id,
-            or_(Payment.status == "rejected", Payment.status == "resubmit_requested"),
+            or_(Payment.status == PaymentStatus.REJECTED, Payment.status == PaymentStatus.RESUBMIT_REQUESTED),
             Payment.review_note.isnot(None),
             Payment.review_note != ""
         )

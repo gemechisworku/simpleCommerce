@@ -1,8 +1,8 @@
 """
 User schemas
 """
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
+from pydantic import BaseModel, EmailStr, Field, field_serializer
+from typing import Optional, Any
 from uuid import UUID
 from datetime import datetime
 
@@ -21,7 +21,17 @@ class AdminUserRoleUpdate(BaseModel):
     role: str = Field(..., description="New role: customer, sales, or admin")
 
 
-class UserListItemResponse(BaseModel):
+class _RoleMixin:
+    """Serialize role to lowercase for API (frontend expects 'admin'|'sales'|'customer')."""
+    @field_serializer("role")
+    def serialize_role(self, v: Any) -> str:
+        if hasattr(v, "value"):
+            return getattr(v, "value", v).lower() if getattr(v, "value", v) else ""
+        return str(v).lower() if v else ""
+}
+
+
+class UserListItemResponse(BaseModel, _RoleMixin):
     """User list item (for admin list)"""
     id: UUID
     phone: Optional[str] = None
@@ -35,7 +45,7 @@ class UserListItemResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class UserDetailResponse(BaseModel):
+class UserDetailResponse(BaseModel, _RoleMixin):
     """User detail response (includes orders count)"""
     id: UUID
     phone: Optional[str] = None
@@ -60,7 +70,7 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
 
 
-class UserResponse(BaseModel):
+class UserResponse(BaseModel, _RoleMixin):
     """User response schema"""
     id: UUID
     phone: Optional[str] = None

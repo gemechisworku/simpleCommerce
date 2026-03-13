@@ -17,11 +17,11 @@ class PaymentMethodType(str, enum.Enum):
 
 
 class PaymentStatus(str, enum.Enum):
-    """Payment status enum"""
-    SUBMITTED = "submitted"
-    APPROVED = "approved"
-    REJECTED = "rejected"
-    RESUBMIT_REQUESTED = "resubmit_requested"
+    """Payment status enum (values match PostgreSQL paymentstatus: uppercase)."""
+    SUBMITTED = "SUBMITTED"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    RESUBMIT_REQUESTED = "RESUBMIT_REQUESTED"
 
 
 class PaymentMethod(Base):

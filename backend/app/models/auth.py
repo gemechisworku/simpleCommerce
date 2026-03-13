@@ -10,16 +10,16 @@ import enum
 
 
 class OTPType(str, enum.Enum):
-    """OTP type enum"""
-    PHONE = "phone"
-    EMAIL = "email"
+    """OTP type enum (values match PostgreSQL otptype: uppercase)."""
+    PHONE = "PHONE"
+    EMAIL = "EMAIL"
 
 
 class OTPPurpose(str, enum.Enum):
-    """OTP purpose enum"""
-    LOGIN = "login"
-    VERIFICATION = "verification"
-    PASSWORD_RESET = "password_reset"
+    """OTP purpose enum (values match PostgreSQL otppurpose: uppercase)."""
+    LOGIN = "LOGIN"
+    VERIFICATION = "VERIFICATION"
+    PASSWORD_RESET = "PASSWORD_RESET"
 
 
 class OTPCode(Base):

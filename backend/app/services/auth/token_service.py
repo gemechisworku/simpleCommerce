@@ -35,7 +35,7 @@ def create_tokens_for_user(
     """
     # Create access token
     access_token = create_access_token(
-        data={"sub": str(user.id), "role": user.role.value}
+        data={"sub": str(user.id), "role": user.role.value.lower()}
     )
     
     # Create refresh token
@@ -106,7 +106,7 @@ def refresh_access_token(
     
     # Create new access token
     new_access_token = create_access_token(
-        data={"sub": str(user.id), "role": user.role.value}
+        data={"sub": str(user.id), "role": user.role.value.lower()}
     )
     
     # Optionally rotate refresh token (for security)
