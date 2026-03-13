@@ -44,10 +44,7 @@ def upgrade() -> None:
     op.drop_index('idx_delivery_zones_name', table_name='delivery_zones')
     op.create_index(op.f('ix_delivery_zones_is_active'), 'delivery_zones', ['is_active'], unique=False)
     op.create_index(op.f('ix_delivery_zones_name'), 'delivery_zones', ['name'], unique=True)
-    op.alter_column('notifications', 'type',
-               existing_type=postgresql.ENUM('PAYMENT_APPROVED', 'PAYMENT_REJECTED', 'PAYMENT_RESUBMIT_REQUESTED', 'ORDER_STATUS_UPDATED', 'ORDER_DISPATCHED', 'ORDER_DELIVERED', 'NEW_ORDER', 'NEW_PAYMENT_SUBMITTED', name='notification_type_enum'),
-               type_=sa.Enum('PAYMENT_APPROVED', 'PAYMENT_REJECTED', 'PAYMENT_RESUBMIT_REQUESTED', 'ORDER_STATUS_UPDATED', 'ORDER_DISPATCHED', 'ORDER_DELIVERED', 'NEW_ORDER', 'NEW_PAYMENT_SUBMITTED', name='notificationtype'),
-               existing_nullable=False)
+    op.execute("ALTER TABLE notifications ALTER COLUMN type TYPE notificationtype USING type::text::notificationtype")
     op.drop_index('idx_notifications_created_at', table_name='notifications')
     op.drop_index('idx_notifications_is_read', table_name='notifications', postgresql_where='(is_read = false)')
     op.drop_index('idx_notifications_related_order', table_name='notifications')
@@ -64,24 +61,16 @@ def upgrade() -> None:
     op.create_index(op.f('ix_order_items_order_id'), 'order_items', ['order_id'], unique=False)
     op.create_index(op.f('ix_order_items_product_id'), 'order_items', ['product_id'], unique=False)
     op.create_index(op.f('ix_order_items_variant_id'), 'order_items', ['variant_id'], unique=False)
-    op.alter_column('order_status_history', 'old_status',
-               existing_type=postgresql.ENUM('PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_RESUBMIT_REQUESTED', 'PAYMENT_REJECTED', 'PAID', 'PACKING', 'DISPATCHED', 'DELIVERED', 'CANCELLED', name='order_status_enum'),
-               type_=sa.Enum('PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_RESUBMIT_REQUESTED', 'PAYMENT_REJECTED', 'PAID', 'PACKING', 'DISPATCHED', 'DELIVERED', 'CANCELLED', name='orderstatus'),
-               existing_nullable=True)
-    op.alter_column('order_status_history', 'new_status',
-               existing_type=postgresql.ENUM('PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_RESUBMIT_REQUESTED', 'PAYMENT_REJECTED', 'PAID', 'PACKING', 'DISPATCHED', 'DELIVERED', 'CANCELLED', name='order_status_enum'),
-               type_=sa.Enum('PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_RESUBMIT_REQUESTED', 'PAYMENT_REJECTED', 'PAID', 'PACKING', 'DISPATCHED', 'DELIVERED', 'CANCELLED', name='orderstatus'),
-               existing_nullable=False)
+    op.execute("ALTER TABLE order_status_history ALTER COLUMN old_status TYPE orderstatus USING old_status::text::orderstatus")
+    op.execute("ALTER TABLE order_status_history ALTER COLUMN new_status TYPE orderstatus USING new_status::text::orderstatus")
     op.drop_index('idx_order_status_history_created_at', table_name='order_status_history')
     op.drop_index('idx_order_status_history_order_created', table_name='order_status_history')
     op.drop_index('idx_order_status_history_order_id', table_name='order_status_history')
     op.create_index(op.f('ix_order_status_history_created_at'), 'order_status_history', ['created_at'], unique=False)
     op.create_index(op.f('ix_order_status_history_order_id'), 'order_status_history', ['order_id'], unique=False)
-    op.alter_column('orders', 'status',
-               existing_type=postgresql.ENUM('PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_RESUBMIT_REQUESTED', 'PAYMENT_REJECTED', 'PAID', 'PACKING', 'DISPATCHED', 'DELIVERED', 'CANCELLED', name='order_status_enum'),
-               type_=sa.Enum('PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_RESUBMIT_REQUESTED', 'PAYMENT_REJECTED', 'PAID', 'PACKING', 'DISPATCHED', 'DELIVERED', 'CANCELLED', name='orderstatus'),
-               existing_nullable=False,
-               existing_server_default=sa.text("'PENDING_PAYMENT'::order_status_enum"))
+    op.execute("ALTER TABLE orders ALTER COLUMN status DROP DEFAULT")
+    op.execute("ALTER TABLE orders ALTER COLUMN status TYPE orderstatus USING status::text::orderstatus")
+    op.execute("ALTER TABLE orders ALTER COLUMN status SET DEFAULT 'PENDING_PAYMENT'::orderstatus")
     op.drop_index('idx_orders_created_at', table_name='orders')
     op.drop_index('idx_orders_delivery_zone_id', table_name='orders')
     op.drop_index('idx_orders_order_number', table_name='orders')
@@ -94,14 +83,8 @@ def upgrade() -> None:
     op.create_index(op.f('ix_orders_order_number'), 'orders', ['order_number'], unique=True)
     op.create_index(op.f('ix_orders_status'), 'orders', ['status'], unique=False)
     op.create_index(op.f('ix_orders_user_id'), 'orders', ['user_id'], unique=False)
-    op.alter_column('otp_codes', 'type',
-               existing_type=postgresql.ENUM('phone', 'email', name='otp_type_enum'),
-               type_=sa.Enum('PHONE', 'EMAIL', name='otptype'),
-               existing_nullable=False)
-    op.alter_column('otp_codes', 'purpose',
-               existing_type=postgresql.ENUM('login', 'verification', 'password_reset', name='otp_purpose_enum'),
-               type_=sa.Enum('LOGIN', 'VERIFICATION', 'PASSWORD_RESET', name='otppurpose'),
-               existing_nullable=False)
+    op.execute("ALTER TABLE otp_codes ALTER COLUMN type TYPE otptype USING UPPER(type::text)::otptype")
+    op.execute("ALTER TABLE otp_codes ALTER COLUMN purpose TYPE otppurpose USING UPPER(purpose::text)::otppurpose")
     op.drop_index('idx_otp_codes_code', table_name='otp_codes')
     op.drop_index('idx_otp_codes_expires_at', table_name='otp_codes')
     op.drop_index('idx_otp_codes_identifier', table_name='otp_codes')
@@ -109,26 +92,22 @@ def upgrade() -> None:
     op.create_index(op.f('ix_otp_codes_code'), 'otp_codes', ['code'], unique=False)
     op.create_index(op.f('ix_otp_codes_expires_at'), 'otp_codes', ['expires_at'], unique=False)
     op.create_index(op.f('ix_otp_codes_identifier'), 'otp_codes', ['identifier'], unique=False)
-    op.alter_column('payment_methods', 'type',
-               existing_type=postgresql.ENUM('BANK_TRANSFER', 'MOBILE_MONEY', 'OTHER', name='payment_method_type_enum'),
-               type_=sa.Enum('BANK_TRANSFER', 'MOBILE_MONEY', 'OTHER', name='paymentmethodtype'),
-               existing_nullable=False)
+    op.execute("ALTER TABLE payment_methods ALTER COLUMN type TYPE paymentmethodtype USING type::text::paymentmethodtype")
     op.drop_index('idx_payment_methods_is_active', table_name='payment_methods', postgresql_where='(is_active = true)')
     op.drop_index('idx_payment_methods_sort_order', table_name='payment_methods', postgresql_where='(is_active = true)')
     op.drop_index('idx_payment_methods_type', table_name='payment_methods')
     op.create_index(op.f('ix_payment_methods_is_active'), 'payment_methods', ['is_active'], unique=False)
     op.create_index(op.f('ix_payment_methods_type'), 'payment_methods', ['type'], unique=False)
-    op.alter_column('payments', 'status',
-               existing_type=postgresql.ENUM('submitted', 'approved', 'rejected', 'resubmit_requested', name='payment_status_enum'),
-               type_=sa.Enum('SUBMITTED', 'APPROVED', 'REJECTED', 'RESUBMIT_REQUESTED', name='paymentstatus'),
-               existing_nullable=False,
-               existing_server_default=sa.text("'submitted'::payment_status_enum"))
+    # Drop partial index before altering column type to avoid paymentstatus = payment_status_enum operator error
+    op.drop_index('idx_payments_status_created', table_name='payments')
+    op.execute("ALTER TABLE payments ALTER COLUMN status DROP DEFAULT")
+    op.execute("ALTER TABLE payments ALTER COLUMN status TYPE paymentstatus USING UPPER(status::text)::paymentstatus")
+    op.execute("ALTER TABLE payments ALTER COLUMN status SET DEFAULT 'SUBMITTED'::paymentstatus")
     op.drop_index('idx_payments_created_at', table_name='payments')
     op.drop_index('idx_payments_method_id', table_name='payments')
     op.drop_index('idx_payments_order_id', table_name='payments')
     op.drop_index('idx_payments_reviewed_by', table_name='payments')
     op.drop_index('idx_payments_status', table_name='payments')
-    op.drop_index('idx_payments_status_created', table_name='payments', postgresql_where="(status = 'submitted'::payment_status_enum)")
     op.drop_index('idx_payments_submitted_by', table_name='payments')
     op.create_index(op.f('ix_payments_created_at'), 'payments', ['created_at'], unique=False)
     op.create_index(op.f('ix_payments_method_id'), 'payments', ['method_id'], unique=False)
@@ -158,11 +137,9 @@ def upgrade() -> None:
     op.create_index(op.f('ix_refresh_tokens_expires_at'), 'refresh_tokens', ['expires_at'], unique=False)
     op.create_index(op.f('ix_refresh_tokens_token'), 'refresh_tokens', ['token'], unique=True)
     op.create_index(op.f('ix_refresh_tokens_user_id'), 'refresh_tokens', ['user_id'], unique=False)
-    op.alter_column('users', 'role',
-               existing_type=postgresql.ENUM('customer', 'sales', 'admin', name='user_role_enum'),
-               type_=sa.Enum('CUSTOMER', 'SALES', 'ADMIN', name='userrole'),
-               existing_nullable=False,
-               existing_server_default=sa.text("'customer'::user_role_enum"))
+    op.execute("ALTER TABLE users ALTER COLUMN role DROP DEFAULT")
+    op.execute("ALTER TABLE users ALTER COLUMN role TYPE userrole USING UPPER(role::text)::userrole")
+    op.execute("ALTER TABLE users ALTER COLUMN role SET DEFAULT 'CUSTOMER'::userrole")
     op.drop_index('idx_users_created_at', table_name='users')
     op.drop_index('idx_users_email', table_name='users', postgresql_where='((email IS NOT NULL) AND (email_verified = true))')
     op.drop_index('idx_users_phone', table_name='users', postgresql_where='((phone IS NOT NULL) AND (phone_verified = true))')
