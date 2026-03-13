@@ -28,7 +28,6 @@ class _RoleMixin:
         if hasattr(v, "value"):
             return getattr(v, "value", v).lower() if getattr(v, "value", v) else ""
         return str(v).lower() if v else ""
-}
 
 
 class UserListItemResponse(BaseModel, _RoleMixin):
