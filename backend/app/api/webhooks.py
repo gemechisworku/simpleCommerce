@@ -16,12 +16,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-class TelegramUpdate(BaseModel):
-    """Minimal shape for Telegram webhook update; we only care about message.text and chat.id."""
-    update_id: int | None = None
-    message: dict | None = None
-
-
 @router.post("/telegram")
 async def telegram_webhook(request: Request, db: Session = Depends(get_db)):
     """
