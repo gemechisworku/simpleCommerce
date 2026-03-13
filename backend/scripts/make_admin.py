@@ -11,10 +11,12 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from app.core.database import SessionLocal
 from app.models.user import User, UserRole
+from app.utils.helpers import normalize_phone_e164
 
 
 def main():
-    phone = (sys.argv[1] if len(sys.argv) > 1 else os.environ.get("MAKE_ADMIN_PHONE", "")).strip()
+    raw = (sys.argv[1] if len(sys.argv) > 1 else os.environ.get("MAKE_ADMIN_PHONE", "")).strip()
+    phone = normalize_phone_e164(raw) if raw else ""
     if not phone:
         print("Usage: python -m scripts.make_admin +251937745414")
         sys.exit(1)

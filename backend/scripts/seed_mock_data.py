@@ -12,15 +12,15 @@ from app.core.database import SessionLocal
 from app.models.category import Category
 from app.models.product import Product, ProductVariant, ProductImage
 from app.models.user import User, UserRole
-from app.utils.helpers import generate_slug
+from app.utils.helpers import generate_slug, normalize_phone_e164
 from decimal import Decimal
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Superadmin seed - configurable via env (default for dev only)
-SUPERADMIN_PHONE = os.environ.get("SUPERADMIN_PHONE", "+251911111111")
+# Superadmin seed - configurable via env (default for dev only). Normalized to E.164 so it matches auth (login stores +251...).
+SUPERADMIN_PHONE = normalize_phone_e164(os.environ.get("SUPERADMIN_PHONE", "+251911111111"))
 SUPERADMIN_EMAIL = os.environ.get("SUPERADMIN_EMAIL", "admin@simplecommerce.local")
 SUPERADMIN_FIRST_NAME = os.environ.get("SUPERADMIN_FIRST_NAME", "Super")
 SUPERADMIN_LAST_NAME = os.environ.get("SUPERADMIN_LAST_NAME", "Admin")

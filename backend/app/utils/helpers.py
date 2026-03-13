@@ -62,13 +62,26 @@ def generate_order_number() -> str:
     return f"ORD-{date_str}-{random_str}"
 
 
+def normalize_phone_e164(phone: str) -> str:
+    """
+    Normalize phone to E.164 (e.g. 25137745414 -> +25137745414).
+    Use for env/config values so they match DB (auth stores E.164).
+    """
+    if not phone or not isinstance(phone, str):
+        return phone
+    s = phone.strip()
+    if s.startswith("+"):
+        return s
+    return f"+{s}"
+
+
 def validate_phone(phone: str) -> bool:
     """
     Validate phone number format (basic validation)
-    
+
     Args:
         phone: Phone number string
-        
+
     Returns:
         True if valid format, False otherwise
     """
