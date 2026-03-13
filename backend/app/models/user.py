@@ -10,10 +10,10 @@ import enum
 
 
 class UserRole(str, enum.Enum):
-    """User role enum"""
-    CUSTOMER = "customer"
-    SALES = "sales"
-    ADMIN = "admin"
+    """User role enum (values match PostgreSQL userrole type: uppercase)."""
+    CUSTOMER = "CUSTOMER"
+    SALES = "SALES"
+    ADMIN = "ADMIN"
 
 
 class User(Base):

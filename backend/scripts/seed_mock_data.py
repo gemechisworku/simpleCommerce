@@ -304,17 +304,22 @@ def seed_product_images(db: Session):
 
 
 def main():
-    """Main seeding function"""
+    """Main seeding function. Set SEED_ADMIN_ONLY=1 to only create/upgrade superadmin (for production)."""
+    admin_only = os.environ.get("SEED_ADMIN_ONLY", "").strip().lower() in ("1", "true", "yes")
     db: Session = SessionLocal()
     try:
-        logger.info("Starting mock data seeding...")
+        if admin_only:
+            logger.info("Starting seed (admin only, no mock products)...")
+        else:
+            logger.info("Starting mock data seeding...")
         seed_superadmin(db)
-        seed_categories(db)
-        seed_products(db)
-        seed_product_images(db)
-        logger.info("Mock data seeding completed successfully!")
+        if not admin_only:
+            seed_categories(db)
+            seed_products(db)
+            seed_product_images(db)
+        logger.info("Seeding completed successfully!")
     except Exception as e:
-        logger.error(f"Error seeding mock data: {str(e)}")
+        logger.error(f"Error seeding: {str(e)}")
         db.rollback()
         raise
     finally:

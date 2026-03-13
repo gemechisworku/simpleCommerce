@@ -45,6 +45,11 @@ docker exec -it simplecommerce_backend python scripts/seed_mock_data.py
    - Teff Flour (2 variants)
    - Quinoa (2 variants)
 
+### Production
+
+- **Full mock data (admin + categories + products):** Run the script once without `SEED_ADMIN_ONLY` (e.g. on Railway: `railway run -s backend python -m scripts.seed_mock_data`). Set `SUPERADMIN_PHONE` (and optional `SUPERADMIN_EMAIL`, etc.) in the environment. Prod will have the same sample data as local.
+- **Admin only (no mock products):** Set `SEED_ADMIN_ONLY=1` in the environment, then run the script once. See [Deploy Backend on Railway](../../docs/DEPLOY_RAILWAY.md#9-first-time-setup-seed-admin-and-optional-mock-data-production).
+
 ### Notes:
 
 - The script checks for existing data and skips if already present

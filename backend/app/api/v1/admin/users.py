@@ -49,7 +49,7 @@ async def list_users_endpoint(
     user_role = None
     if role:
         try:
-            user_role = UserRole(role)
+            user_role = UserRole(role.upper())
         except ValueError:
             pass
 
@@ -137,7 +137,7 @@ async def create_user_endpoint(
     Requires admin role.
     """
     try:
-        role = UserRole(user_data.role)
+        role = UserRole(user_data.role.upper())
     except ValueError:
         from app.core.exceptions import BusinessRuleError
         raise BusinessRuleError(f"Invalid role: {user_data.role}. Must be 'sales' or 'admin'")
@@ -170,7 +170,7 @@ async def update_user_role_endpoint(
     Requires admin role.
     """
     try:
-        new_role = UserRole(role_data.role)
+        new_role = UserRole(role_data.role.upper())
     except ValueError:
         from app.core.exceptions import BusinessRuleError
         raise BusinessRuleError(f"Invalid role: {role_data.role}")
