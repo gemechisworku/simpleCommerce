@@ -10,6 +10,7 @@ from app.utils.helpers import generate_otp, validate_phone, validate_email
 from app.core.config import settings
 from app.core.exceptions import BusinessRuleError, NotFoundError
 from app.utils.rate_limit import check_otp_rate_limit
+from app.services.otp_delivery import send_otp_sms, send_otp_email, send_otp_telegram
 from typing import Optional
 import logging
 
@@ -21,24 +22,14 @@ def create_otp(
     identifier: str,
     otp_type: OTPType,
     purpose: OTPPurpose = OTPPurpose.LOGIN,
-    ip_address: Optional[str] = None
+    ip_address: Optional[str] = None,
+    telegram_user_id: Optional[str] = None,
 ) -> OTPCode:
     """
-    Create and store OTP code
-    
-    Args:
-        db: Database session
-        identifier: Phone number or email
-        otp_type: Type of OTP (phone or email)
-        purpose: Purpose of OTP (login, verification, etc.)
-        ip_address: Client IP address
-        
-    Returns:
-        OTPCode object
-        
-    Raises:
-        BusinessRuleError: If validation fails
-        RateLimitError: If rate limit exceeded
+    Create and store OTP code.
+
+    If telegram_user_id is provided (e.g. from Mini App init_data), OTP is sent via Telegram
+    when TELEGRAM_BOT_TOKEN is set; otherwise falls back to SMS/email or log-only.
     """
     # Validate identifier format
     if otp_type == OTPType.PHONE:
@@ -71,13 +62,22 @@ def create_otp(
     db.commit()
     db.refresh(otp)
     
-    # In development mode, log the OTP instead of sending SMS/email
+    # Delivery: prefer Telegram if telegram_user_id provided; else dev log or SMS/email
     if settings.ENVIRONMENT == "development":
         logger.info(f"OTP for {identifier}: {code} (expires at {expires_at})")
     else:
-        # TODO: Integrate with SMS/Email service
-        logger.info(f"OTP generated for {identifier} (not sent in current implementation)")
-    
+        sent = False
+        if telegram_user_id:
+            sent = send_otp_telegram(telegram_user_id, code)
+        if not sent and otp_type == OTPType.PHONE:
+            sent = send_otp_sms(identifier, code)
+        if not sent and otp_type == OTPType.EMAIL:
+            sent = send_otp_email(identifier, code)
+        if not sent:
+            logger.info(
+                "OTP generated for %s (not sent: use Telegram Mini App with init_data, or set OTP_SMS_PROVIDER)",
+                identifier,
+            )
     return otp
 
 

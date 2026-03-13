@@ -10,6 +10,7 @@ from uuid import UUID
 class OTPRequest(BaseModel):
     """Request OTP schema"""
     phone: str = Field(..., description="Phone number in E.164 format")
+    init_data: Optional[str] = Field(None, description="Telegram WebApp initData; when provided, OTP is sent via Telegram instead of SMS")
 
 
 class OTPVerify(BaseModel):

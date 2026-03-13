@@ -54,6 +54,12 @@ class Settings(BaseSettings):
     OTP_EXPIRY_MINUTES: int = 5
     OTP_MAX_ATTEMPTS: int = 5
     OTP_RESEND_COOLDOWN_SECONDS: int = 60
+    # OTP delivery: "twilio" to send SMS in production; "" or "log" = log only (dev/default)
+    OTP_SMS_PROVIDER: str = ""
+    # Twilio (when OTP_SMS_PROVIDER=twilio)
+    TWILIO_ACCOUNT_SID: str = ""
+    TWILIO_AUTH_TOKEN: str = ""
+    TWILIO_FROM_NUMBER: str = ""  # E.164, e.g. +1234567890
     
     # Rate Limiting
     OTP_RATE_LIMIT_WINDOW_MINUTES: int = 15  # Time window for rate limiting

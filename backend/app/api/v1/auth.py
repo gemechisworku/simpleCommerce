@@ -68,19 +68,29 @@ async def request_otp(
     db: Session = Depends(get_db)
 ):
     """
-    Request OTP code via phone number
+    Request OTP code via phone number.
+    If init_data (Telegram WebApp) is provided, OTP is sent to the user's Telegram; otherwise via SMS if configured.
     """
     ip_address = get_client_ip(request)
-    
-    # Create OTP
+    telegram_user_id: Optional[str] = None
+
+    if request_data.init_data:
+        payload = validate_telegram_init_data(request_data.init_data)
+        if payload and payload.get("user"):
+            telegram_user_id = str(payload["user"].get("id", ""))
+    if not telegram_user_id:
+        user = db.query(User).filter(User.phone == request_data.phone).first()
+        if user and user.telegram_user_id:
+            telegram_user_id = user.telegram_user_id
+
     otp = create_otp(
         db=db,
         identifier=request_data.phone,
         otp_type=OTPType.PHONE,
         purpose=OTPPurpose.LOGIN,
-        ip_address=ip_address
+        ip_address=ip_address,
+        telegram_user_id=telegram_user_id,
     )
-    
     return ResponseModel(data=OTPResponse(
         message="OTP sent successfully",
         expires_in=settings.OTP_EXPIRY_MINUTES * 60
