@@ -3,11 +3,11 @@ import { AuthResponse } from '../types';
 import { TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY } from '../constants/api';
 
 export const authService = {
+  /** Request OTP for phone (used when accessing outside Telegram). OTP is sent via Telegram (direct or via link). */
   async requestOtp(phone: string) {
-    const { data } = await api.post<{ data: { message: string; expires_in: number } }>(
-      '/auth/otp/request',
-      { phone }
-    );
+    const { data } = await api.post<{
+      data: { message: string; expires_in: number; telegram_otp_link?: string };
+    }>('/auth/otp/request', { phone });
     return data.data;
   },
 

@@ -26,18 +26,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!cancelled) setIsLoading(false);
         return;
       }
-      // Telegram Mini App: auto-login with initData when opened from Telegram
-      const tg = (window as unknown as { Telegram?: { WebApp?: { initData?: string; ready?: () => void; expand?: () => void } } }).Telegram;
-      const initData = tg?.WebApp?.initData;
-      if (initData && initData.length > 0) {
-        try {
-          const userData = await authService.verifyTelegram(initData);
-          if (!cancelled) setUser(userData);
-          tg?.WebApp?.ready?.();
-          tg?.WebApp?.expand?.();
-        } catch {
-          // Invalid or expired initData; user can still use phone login
-        }
+      // When opened from Telegram we do NOT auto-call verifyTelegram here.
+      // User must tap the consent button on the login page (first time or when no session).
+      // Returning users with a valid session are restored above.
+      const tg = (window as unknown as { Telegram?: { WebApp?: { ready?: () => void; expand?: () => void } } }).Telegram;
+      if (tg?.WebApp) {
+        tg.WebApp.ready?.();
+        tg.WebApp.expand?.();
       }
       if (!cancelled) setIsLoading(false);
     })();
