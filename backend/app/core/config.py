@@ -76,8 +76,9 @@ class Settings(BaseSettings):
     DEFAULT_PAGE_SIZE: int = 20
     MAX_PAGE_SIZE: int = 100
 
-    # Telegram Mini App (optional)
+    # Telegram Mini App and OTP (optional)
     TELEGRAM_BOT_TOKEN: str = ""
+    TELEGRAM_BOT_USERNAME: str = ""  # Bot username without @, for t.me/BotUsername links
     TELEGRAM_INIT_DATA_MAX_AGE_SECONDS: int = 86400  # 24 hours
 
     class Config:

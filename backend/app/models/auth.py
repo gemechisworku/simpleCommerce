@@ -35,6 +35,8 @@ class OTPCode(Base):
     used_at = Column(DateTime(timezone=True), nullable=True)
     ip_address = Column(String(45), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    # One-time token for "open in Telegram" link; when user opens link, bot sends OTP to their chat
+    delivery_token = Column(String(64), nullable=True, unique=True, index=True)
 
     def __repr__(self):
         return f"<OTPCode(id={self.id}, identifier={self.identifier}, type={self.type}, used={self.used_at is not None})>"

@@ -8,9 +8,8 @@ from uuid import UUID
 
 
 class OTPRequest(BaseModel):
-    """Request OTP schema"""
+    """Request OTP schema (used when accessing outside Telegram; OTP is sent to user's Telegram if linked, else SMS)."""
     phone: str = Field(..., description="Phone number in E.164 format")
-    init_data: Optional[str] = Field(None, description="Telegram WebApp initData; when provided, OTP is sent via Telegram instead of SMS")
 
 
 class OTPVerify(BaseModel):
@@ -84,4 +83,5 @@ class OTPResponse(BaseModel):
     """OTP request response schema"""
     message: str
     expires_in: int  # seconds
+    telegram_otp_link: Optional[str] = None  # When set, open this link in Telegram to receive the code
 

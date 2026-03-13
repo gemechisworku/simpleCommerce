@@ -1,11 +1,14 @@
 """
 Authentication endpoints
 """
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, Request, status, HTTPException
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.exceptions import BusinessRuleError
 from app.core.config import settings
+from app.utils.helpers import validate_phone
+from app.utils.rate_limit import check_otp_rate_limit
+from app.services.otp_delivery import is_sms_configured
 from app.schemas.auth import (
     OTPRequest,
     OTPVerify,
@@ -38,6 +41,7 @@ from app.api.dependencies import get_current_user
 from app.models.user import User
 from app.schemas.user import UserResponse
 from typing import Optional
+import secrets
 
 router = APIRouter()
 
@@ -68,20 +72,37 @@ async def request_otp(
     db: Session = Depends(get_db)
 ):
     """
-    Request OTP code via phone number.
-    If init_data (Telegram WebApp) is provided, OTP is sent to the user's Telegram; otherwise via SMS if configured.
+    Request OTP code via phone number (used when accessing outside Telegram).
+    OTP is always sent via Telegram when possible: directly if the user has a linked account,
+    or via a one-time "Open in Telegram" link for first-time users (open link → receive code in chat).
     """
+    if not validate_phone(request_data.phone):
+        raise BusinessRuleError("Invalid phone number format. Please use E.164 format (e.g., +251912345678)")
     ip_address = get_client_ip(request)
-    telegram_user_id: Optional[str] = None
+    check_otp_rate_limit(db, request_data.phone, ip_address)
 
-    if request_data.init_data:
-        payload = validate_telegram_init_data(request_data.init_data)
-        if payload and payload.get("user"):
-            telegram_user_id = str(payload["user"].get("id", ""))
-    if not telegram_user_id:
-        user = db.query(User).filter(User.phone == request_data.phone).first()
-        if user and user.telegram_user_id:
-            telegram_user_id = user.telegram_user_id
+    telegram_user_id: Optional[str] = None
+    user = db.query(User).filter(User.phone == request_data.phone).first()
+    if user and user.telegram_user_id:
+        telegram_user_id = user.telegram_user_id
+
+    can_deliver_via_telegram_link = bool(
+        settings.TELEGRAM_BOT_TOKEN and settings.TELEGRAM_BOT_USERNAME
+    )
+    can_deliver = (
+        settings.ENVIRONMENT == "development"
+        or telegram_user_id
+        or is_sms_configured()
+        or can_deliver_via_telegram_link
+    )
+    if not can_deliver:
+        raise HTTPException(
+            status_code=status.HTTP_412_PRECONDITION_FAILED,
+            detail={
+                "code": "OTP_DELIVERY_UNAVAILABLE",
+                "message": "We can't send a code to this number yet. Configure TELEGRAM_BOT_TOKEN and TELEGRAM_BOT_USERNAME, or an SMS provider.",
+            },
+        )
 
     otp = create_otp(
         db=db,
@@ -91,9 +112,17 @@ async def request_otp(
         ip_address=ip_address,
         telegram_user_id=telegram_user_id,
     )
+    telegram_otp_link: Optional[str] = None
+    if not telegram_user_id and can_deliver_via_telegram_link:
+        token = secrets.token_urlsafe(32)
+        otp.delivery_token = token
+        db.commit()
+        telegram_otp_link = f"https://t.me/{settings.TELEGRAM_BOT_USERNAME.strip()}?start=otp_{token}"
+
     return ResponseModel(data=OTPResponse(
         message="OTP sent successfully",
-        expires_in=settings.OTP_EXPIRY_MINUTES * 60
+        expires_in=settings.OTP_EXPIRY_MINUTES * 60,
+        telegram_otp_link=telegram_otp_link,
     ))
 
 

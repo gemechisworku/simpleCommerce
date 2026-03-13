@@ -43,6 +43,18 @@ def send_otp_telegram(telegram_user_id: str, code: str) -> bool:
         return False
 
 
+def is_sms_configured() -> bool:
+    """Return True if an SMS provider is configured and has credentials (so we can send to first-time users)."""
+    provider = (settings.OTP_SMS_PROVIDER or "").strip().lower()
+    if not provider or provider == "log":
+        return False
+    if provider == "twilio":
+        return bool(
+            settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN and settings.TWILIO_FROM_NUMBER
+        )
+    return False
+
+
 def send_otp_sms(phone: str, code: str) -> bool:
     """
     Send OTP code via SMS using the configured provider.

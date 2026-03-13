@@ -1,4 +1,21 @@
-# Mock Data Seeding Scripts
+# Backend Scripts
+
+## make_admin.py
+
+Makes a user with the given phone an **admin** (or creates them as admin if they don't exist).
+
+```bash
+# From backend directory (set DATABASE_URL if needed)
+python -m scripts.make_admin +251937745414
+
+# With env
+MAKE_ADMIN_PHONE=+251937745414 python -m scripts.make_admin
+```
+
+**Railway:** From Backend Shell (or `railway run` with DATABASE_URL):  
+`python -m scripts.make_admin +251937745414`
+
+---
 
 ## seed_mock_data.py
 

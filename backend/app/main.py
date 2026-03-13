@@ -11,6 +11,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.core.config import settings
 from app.core.logging_config import setup_logging
 from app.api.v1 import api_router
+from app.api.webhooks import router as webhooks_router
 from app.core.exceptions import AppException
 
 # Set up logging
@@ -124,6 +125,8 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 
 # Include API router
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+# Telegram webhook (no API prefix; Telegram calls this URL)
+app.include_router(webhooks_router, prefix="/webhooks", tags=["webhooks"])
 
 
 @app.get("/storage/{file_path:path}")
