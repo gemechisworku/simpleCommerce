@@ -113,16 +113,21 @@ async def request_otp(
         telegram_user_id=telegram_user_id,
     )
     telegram_otp_link: Optional[str] = None
-    if not telegram_user_id and can_deliver_via_telegram_link:
+    otp_sent_via: Optional[str] = "log" if settings.ENVIRONMENT == "development" else "sms"
+    if telegram_user_id:
+        otp_sent_via = "telegram"
+    elif can_deliver_via_telegram_link:
         token = secrets.token_urlsafe(32)
         otp.delivery_token = token
         db.commit()
         telegram_otp_link = f"https://t.me/{settings.TELEGRAM_BOT_USERNAME.strip()}?start=otp_{token}"
+        otp_sent_via = "telegram_link"
 
     return ResponseModel(data=OTPResponse(
         message="OTP sent successfully",
         expires_in=settings.OTP_EXPIRY_MINUTES * 60,
         telegram_otp_link=telegram_otp_link,
+        otp_sent_via=otp_sent_via,
     ))
 
 

@@ -18,6 +18,7 @@ export function LoginPage() {
   const [error, setError] = useState('');
   const [telegramRetrying, setTelegramRetrying] = useState(false);
   const [telegramOtpLink, setTelegramOtpLink] = useState<string | null>(null);
+  const [otpSentVia, setOtpSentVia] = useState<'telegram' | 'telegram_link' | 'sms' | 'log' | undefined>(undefined);
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -47,10 +48,12 @@ export function LoginPage() {
     }
     setLoading(true);
     setTelegramOtpLink(null);
+    setOtpSentVia(undefined);
     try {
       const res = await authService.requestOtp(formatted);
       setPhone(formatted);
       if (res.telegram_otp_link) setTelegramOtpLink(res.telegram_otp_link);
+      if (res.otp_sent_via) setOtpSentVia(res.otp_sent_via);
       setStep('otp');
     } catch (err: unknown) {
       const res = err && typeof err === 'object' && 'response' in err
@@ -153,9 +156,12 @@ export function LoginPage() {
           </form>
         ) : (
           <form onSubmit={handleVerifyOtp} className="mt-6 space-y-4">
-            {telegramOtpLink ? (
+            {otpSentVia === 'telegram' && (
+              <p className="text-sm text-black dark:text-white">We sent the code to your Telegram. Enter it below.</p>
+            )}
+            {otpSentVia === 'telegram_link' && telegramOtpLink && (
               <div className="rounded-lg border border-stroke dark:border-strokedark bg-meta-4/50 p-3">
-                <p className="text-sm text-black dark:text-white mb-2">Open this link in Telegram to receive your code:</p>
+                <p className="text-sm text-black dark:text-white mb-2">Open the link below once to receive your 6-digit code in Telegram. Then enter the code here.</p>
                 <a
                   href={telegramOtpLink}
                   target="_blank"
@@ -165,8 +171,15 @@ export function LoginPage() {
                   {telegramOtpLink}
                 </a>
               </div>
-            ) : (
-              <p className="text-sm text-black dark:text-white">OTP sent to your Telegram for {phone}</p>
+            )}
+            {otpSentVia === 'sms' && (
+              <p className="text-sm text-black dark:text-white">We sent a code to your phone. Enter it below.</p>
+            )}
+            {otpSentVia === 'log' && (
+              <p className="text-sm text-black dark:text-white">Check server logs for the code (development). Enter it below.</p>
+            )}
+            {!otpSentVia && (
+              <p className="text-sm text-black dark:text-white">Enter the 6-digit code we sent you for {phone}.</p>
             )}
             <div>
               <label htmlFor="otp" className="mb-1 block text-sm font-medium text-black dark:text-white">Enter 6-digit code</label>
@@ -187,7 +200,7 @@ export function LoginPage() {
             </button>
             <button
               type="button"
-              onClick={() => { setStep('phone'); setOtp(''); setError(''); setTelegramOtpLink(null); }}
+              onClick={() => { setStep('phone'); setOtp(''); setError(''); setTelegramOtpLink(null); setOtpSentVia(undefined); }}
               disabled={loading}
               className="w-full rounded-lg border border-stroke dark:border-strokedark py-2.5 font-medium text-black dark:text-white hover:bg-gray-1 dark:hover:bg-white/10 disabled:opacity-50"
             >

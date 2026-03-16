@@ -83,5 +83,6 @@ class OTPResponse(BaseModel):
     """OTP request response schema"""
     message: str
     expires_in: int  # seconds
-    telegram_otp_link: Optional[str] = None  # When set, open this link in Telegram to receive the code
+    telegram_otp_link: Optional[str] = None  # When set, open this link once to receive the code in Telegram
+    otp_sent_via: Optional[str] = None  # "telegram" | "telegram_link" | "sms" | "log" – for UI messaging
 

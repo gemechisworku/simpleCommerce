@@ -21,15 +21,31 @@ logger = logging.getLogger(__name__)
 
 # Superadmin seed - configurable via env (default for dev only). Normalized to E.164 so it matches auth (login stores +251...).
 SUPERADMIN_PHONE = normalize_phone_e164(os.environ.get("SUPERADMIN_PHONE", "+251911111111"))
+SUPERADMIN_TELEGRAM_ID = (os.environ.get("SUPERADMIN_TELEGRAM_ID") or "").strip() or None  # e.g. Telegram user id for Mini App–only admin
 SUPERADMIN_EMAIL = os.environ.get("SUPERADMIN_EMAIL", "admin@simplecommerce.local")
 SUPERADMIN_FIRST_NAME = os.environ.get("SUPERADMIN_FIRST_NAME", "Super")
 SUPERADMIN_LAST_NAME = os.environ.get("SUPERADMIN_LAST_NAME", "Admin")
 
 
 def seed_superadmin(db: Session):
-    """Seed first admin user for initial access. Login via phone OTP at /login."""
+    """Seed first admin user for initial access. Supports phone (OTP) and/or Telegram ID (Mini App–only users)."""
     logger.info("Seeding superadmin user...")
 
+    # 1) If SUPERADMIN_TELEGRAM_ID is set, upgrade that Telegram user to admin (for users who only use Mini App).
+    if SUPERADMIN_TELEGRAM_ID:
+        by_telegram = db.query(User).filter(User.telegram_user_id == SUPERADMIN_TELEGRAM_ID).first()
+        if by_telegram:
+            if by_telegram.role == UserRole.ADMIN:
+                logger.info(f"Superadmin already exists (Telegram): {SUPERADMIN_TELEGRAM_ID}, skipping...")
+            else:
+                by_telegram.role = UserRole.ADMIN
+                by_telegram.first_name = by_telegram.first_name or SUPERADMIN_FIRST_NAME
+                by_telegram.last_name = by_telegram.last_name or SUPERADMIN_LAST_NAME
+                db.commit()
+                logger.info(f"Upgraded user to admin (Telegram): {SUPERADMIN_TELEGRAM_ID}")
+            return
+
+    # 2) Phone-based superadmin (OTP login at /login).
     existing = db.query(User).filter(User.phone == SUPERADMIN_PHONE).first()
     if existing:
         if existing.role == UserRole.ADMIN:

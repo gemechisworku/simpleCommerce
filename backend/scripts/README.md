@@ -2,18 +2,23 @@
 
 ## make_admin.py
 
-Makes a user with the given phone an **admin** (or creates them as admin if they don't exist).
+Makes a user **admin** by **phone** or **Telegram user ID**.
 
 ```bash
-# From backend directory (set DATABASE_URL if needed)
+# By phone (E.164 or 251...)
 python -m scripts.make_admin +251937745414
+
+# By Telegram user ID (digits only) – for users who only use the Mini App
+python -m scripts.make_admin 123456789
 
 # With env
 MAKE_ADMIN_PHONE=+251937745414 python -m scripts.make_admin
+# or
+MAKE_ADMIN_TELEGRAM_ID=123456789 python -m scripts.make_admin
 ```
 
-**Railway:** From Backend Shell (or `railway run` with DATABASE_URL):  
-`python -m scripts.make_admin +251937745414`
+**Railway:** From Backend Shell:  
+`python -m scripts.make_admin +251937745414` or `python -m scripts.make_admin <telegram_user_id>`
 
 ---
 
@@ -40,7 +45,7 @@ docker exec -it simplecommerce_backend python scripts/seed_mock_data.py
    - Role: admin (full access)
    - Login: Go to `/login`, enter phone, request OTP. In dev, OTP is logged in backend.
    - After login, go to `/admin` for the dashboard.
-   - Env overrides: `SUPERADMIN_PHONE`, `SUPERADMIN_EMAIL`, `SUPERADMIN_FIRST_NAME`, `SUPERADMIN_LAST_NAME`
+   - Env overrides: `SUPERADMIN_PHONE`, `SUPERADMIN_TELEGRAM_ID` (for Telegram-only users), `SUPERADMIN_EMAIL`, `SUPERADMIN_FIRST_NAME`, `SUPERADMIN_LAST_NAME`
 
 2. **Categories** (5 categories):
    - Coffee
