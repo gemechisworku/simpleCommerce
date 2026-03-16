@@ -1,6 +1,9 @@
 export const API_BASE_URL =
   process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
 
+/** Bot username (no @) for "Continue with Telegram" link when outside Telegram. Set REACT_APP_TELEGRAM_BOT_USERNAME. */
+export const TELEGRAM_BOT_USERNAME = process.env.REACT_APP_TELEGRAM_BOT_USERNAME || '';
+
 /** Backend origin for resolving relative URLs (e.g. /storage/...) */
 const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api\/v\d+.*$/, '') || 'http://localhost:8000';
 

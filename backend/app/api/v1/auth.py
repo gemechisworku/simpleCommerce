@@ -138,7 +138,9 @@ async def verify_otp_and_login(
     db: Session = Depends(get_db)
 ):
     """
-    Verify OTP code and receive JWT tokens
+    Verify OTP code and receive JWT tokens.
+    If OTP was delivered via Telegram link, we have otp.telegram_user_id: link phone + Telegram
+    on the same user (or merge into existing Telegram-only user).
     """
     # Verify OTP
     otp = verify_otp(
@@ -149,8 +151,32 @@ async def verify_otp_and_login(
         purpose=OTPPurpose.LOGIN
     )
     
-    # Get or create user
-    user = get_or_create_user_by_phone(db, request_data.phone)
+    # Resolve user: link phone + Telegram when we have both (OTP delivered via Telegram link)
+    telegram_user_id = getattr(otp, "telegram_user_id", None)
+    if telegram_user_id:
+        existing_telegram = db.query(User).filter(User.telegram_user_id == telegram_user_id).first()
+        user_by_phone = db.query(User).filter(User.phone == request_data.phone).first()
+        if existing_telegram and not user_by_phone:
+            existing_telegram.phone = request_data.phone
+            existing_telegram.phone_verified = True
+            db.commit()
+            db.refresh(existing_telegram)
+            user = existing_telegram
+        elif user_by_phone:
+            user_by_phone.telegram_user_id = telegram_user_id
+            if existing_telegram and existing_telegram.id != user_by_phone.id:
+                existing_telegram.telegram_user_id = None
+                existing_telegram.phone = None
+            db.commit()
+            db.refresh(user_by_phone)
+            user = user_by_phone
+        else:
+            user = get_or_create_user_by_phone(db, request_data.phone)
+            user.telegram_user_id = telegram_user_id
+            db.commit()
+            db.refresh(user)
+    else:
+        user = get_or_create_user_by_phone(db, request_data.phone)
     
     # Create tokens
     ip_address = get_client_ip(request)

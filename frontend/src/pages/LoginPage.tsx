@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/authService';
+import { TELEGRAM_BOT_USERNAME } from '../constants/api';
 
 type Step = 'phone' | 'otp';
 
@@ -130,14 +131,34 @@ export function LoginPage() {
     );
   }
 
+  const telegramAppUrl = TELEGRAM_BOT_USERNAME
+    ? `https://t.me/${TELEGRAM_BOT_USERNAME.replace(/^@/, '')}`
+    : '';
+
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4 py-8">
       <div className="w-full max-w-md rounded-xl border border-stroke dark:border-strokedark bg-white dark:bg-meta-4 p-6 shadow-sm">
         <h1 className="text-2xl font-bold text-black dark:text-white">simpleCommerce</h1>
         <p className="mt-1 text-black dark:text-white">Sign in to continue</p>
 
+        {telegramAppUrl && (
+          <div className="mt-6 rounded-lg border border-stroke dark:border-strokedark bg-meta-4/30 p-4">
+            <p className="text-sm text-black dark:text-white mb-3">You can also sign in with your Telegram account.</p>
+            <a
+              href={telegramAppUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex w-full justify-center rounded-lg bg-[#0088cc] py-2.5 font-medium text-white hover:opacity-90"
+            >
+              Continue with Telegram
+            </a>
+          </div>
+        )}
+
+        <p className="mt-4 text-sm text-black/70 dark:text-white/70">Or sign in with your phone number</p>
+
         {step === 'phone' ? (
-          <form onSubmit={handleRequestOtp} className="mt-6 space-y-4">
+          <form onSubmit={handleRequestOtp} className="mt-4 space-y-4">
             <div>
               <label htmlFor="phone" className="mb-1 block text-sm font-medium text-black dark:text-white">Phone number</label>
               <input

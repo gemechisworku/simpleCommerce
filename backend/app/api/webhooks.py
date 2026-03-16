@@ -54,6 +54,7 @@ async def telegram_webhook(request: Request, db: Session = Depends(get_db)):
         return {"ok": True}
     sent = send_otp_telegram(str(chat_id), otp.code)
     if sent:
+        otp.telegram_user_id = str(chat_id)
         otp.delivery_token = None
         db.commit()
         logger.info("OTP sent via Telegram link to chat_id=%s for identifier=%s", chat_id, otp.identifier)
